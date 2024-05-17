@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://d3lw8xail3jmj"]
+
+[ext_resource type="Texture2D" uid="uid://bbreslocqwucb" path="res://assets/raw_character/svg_pony_from_cloudyglow/灰琪.svg" id="1_5liga"]
+[ext_resource type="Script" path="res://source_codes/players/player.gd" id="1_mq2hv"]
+
+[node name="Player" type="Sprite2D"]
+texture = ExtResource("1_5liga")
+script = ExtResource("1_mq2hv")
