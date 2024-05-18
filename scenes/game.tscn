@@ -314,5 +314,4 @@ script = ExtResource("2_pqqtr")
 [node name="map_camera" type="Camera2D" parent="default_world_map"]
 
 [node name="Player" parent="." instance=ExtResource("3_p52ot")]
-position = Vector2(15, 10)
-scale = Vector2(0.0152428, 0.0152428)
+visible = false
