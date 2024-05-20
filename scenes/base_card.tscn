@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://b540vgnfqa3d5"]
+
+[ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_ui.gd" id="1_vctcs"]
+
+[node name="BaseCard" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_vctcs")
+
+[node name="Frontface" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Backface" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0

@@ -1,0 +1,13 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cujytmfs462ge"
+
+[deps]
+
+source_file="res://官方数据表格/第一官方扩展包1.0.csv"
+[params]
+
+compress=true
+delimiter=0

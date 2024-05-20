@@ -14,6 +14,11 @@ config/name="Boardgame Is Magic"
 config/features=PackedStringArray("4.2", "Forward Plus")
 config/icon="res://icon.svg"
 
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1600
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/HexGrid_Godot_4.0-main/plugin.cfg", "res://addons/simple_card_pile_ui/plugin.cfg")

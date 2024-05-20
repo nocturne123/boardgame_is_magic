@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://source_codes/map_and_block/default_world_map.gd" id="2_pqqtr"]
 [ext_resource type="PackedScene" uid="uid://d3lw8xail3jmj" path="res://scenes/player.tscn" id="3_p52ot"]
 
-[node name="battle" type="Node2D"]
+[node name="game" type="Node2D"]
 
 [node name="default_world_map" type="TileMap" parent="."]
 texture_filter = 1

@@ -1,0 +1,11 @@
+[
+  {
+	"nice_name": "物理攻击",
+	"texture_path": "res://assets/card_library/playable/actions/物理攻击.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/physical_attack.gd",
+	"type":"Attack",
+	"identity":"PhysicalAttack",
+	"description":"造成一次物理伤害"
+  }
+]
