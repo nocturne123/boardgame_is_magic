@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://b540vgnfqa3d5"]
+[gd_scene load_steps=2 format=3 uid="uid://d1e8mf0ftlb3o"]
 
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_ui.gd" id="1_vctcs"]
 
-[node name="BaseCard" type="Control"]
+[node name="BaseCardUI" type="Control"]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0

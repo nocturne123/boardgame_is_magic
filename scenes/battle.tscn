@@ -1,0 +1,57 @@
+[gd_scene load_steps=9 format=3 uid="uid://cu24tyomca5vi"]
+
+[ext_resource type="Script" path="res://scenes/battle.gd" id="1_ns5nm"]
+[ext_resource type="TileSet" uid="uid://cxiuyapdll1p" path="res://scenes/hex_tileset_v3.tres" id="1_skfp5"]
+[ext_resource type="Script" path="res://source_codes/map_and_block/default_world_map.gd" id="2_ce71k"]
+[ext_resource type="PackedScene" uid="uid://d3lw8xail3jmj" path="res://scenes/player.tscn" id="3_38ibj"]
+[ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_pile_ui.gd" id="5_u4fr5"]
+[ext_resource type="PackedScene" uid="uid://d1e8mf0ftlb3o" path="res://scenes/base_card.tscn" id="6_kmqat"]
+
+[sub_resource type="Curve" id="Curve_lpa1g"]
+_data = [Vector2(0, 0), 0.0, 1.0, 0, 1, Vector2(1, 1), 1.0, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Curve" id="Curve_wvnyr"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.503145, 0.996767), 0.0, 0.0, 0, 0, Vector2(0.993711, 0.000994921), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[node name="battle" type="Node2D"]
+script = ExtResource("1_ns5nm")
+
+[node name="default_world_map" type="TileMap" parent="."]
+texture_filter = 1
+tile_set = ExtResource("1_skfp5")
+format = 2
+layer_0/tile_data = PackedInt32Array(0, 0, 1, -1, 393216, 0, -65536, 393216, 0, -131072, 131072, 1, -65537, 0, 0, 1, 0, 0, 65537, 0, 0, 65536, 0, 0, 65535, 0, 0, -2, 0, 0, -131073, 393216, 0, -196608, 327680, 0, -131071, 327680, 0, -65535, 327680, 0, -196607, 327680, 0, -262144, 65536, 1, -262143, 0, 0, -131075, 393216, 2, -65538, 0, 2, -131074, 0, 2, -196610, 0, 2, -196609, 0, 2, -196611, 327680, 0, -196612, 327680, 0, -131076, 0, 2, -65539, 327680, 0, -65540, 327680, 0, -4, 327680, 0, 65532, 327680, 0, 131069, 131072, 0, 65533, 0, 0, 131070, 0, 0, 131071, 0, 0, 65534, 0, 1, -3, 0, 2, -131070, 131072, 0, -65533, 131072, 0, 131074, 0, 1, 262148, 0, 1, 393222, 458752, 4, 393221, 327680, 0, 327684, 327680, 0, 327685, 131072, 0, 327686, 131072, 0, 196613, 131072, 0, 262149, 131072, 0, 262150, 458752, 2, 196614, 262144, 1, 131077, 131072, 0, 131078, 131072, 0, 65541, 131072, 0, 65540, 131072, 0, 4, 393216, 0, 3, 393216, 0, -65534, 0, 0, -196606, 0, 0, -131069, 0, 0, -65532, 0, 0, 5, 0, 0, 65542, 0, 0, -196605, 393216, 3, -65531, 393216, 3, -262142, 0, 0, -131068, 0, 0, 6, 0, 0, 2, 0, 1, 131076, 0, 1, 262146, 0, 1, 131072, 0, 1, 131073, 0, 0, 196609, 0, 0, 196610, 0, 0, 262147, 0, 0, 196611, 0, 0, 196612, 0, 0, 131075, 0, 0, 65538, 0, 0, 65539, 0, 0, 393220, 131072, 0, 327682, 131072, 0, 327683, 0, 0, 393219, 0, 0, 393218, 0, 0, 327681, 327680, 0, 262145, 393216, 0, 262144, 393216, 0, 196607, 0, 0, 196608, 0, 0, 262143, 131072, 0, 196606, 327680, 0)
+script = ExtResource("2_ce71k")
+
+[node name="map_camera" type="Camera2D" parent="default_world_map"]
+zoom = Vector2(0.3, 0.3)
+
+[node name="Player" parent="." instance=ExtResource("3_38ibj")]
+visible = false
+
+[node name="CardPileUI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_top = 3.0
+offset_right = 40.0
+offset_bottom = 43.0
+script = ExtResource("5_u4fr5")
+json_card_database_path = "res://source_codes/card_system/cards/card_database.json"
+json_card_collection_path = "res://source_codes/card_system/cards/normal_drawpile.json"
+extended_card_ui = ExtResource("6_kmqat")
+hand_rotation_curve = SubResource("Curve_lpa1g")
+hand_vertical_curve = SubResource("Curve_wvnyr")
+
+[node name="TargetingLine2D" type="Line2D" parent="."]
+visible = false
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+offset_left = -461.0
+offset_top = -557.0
+offset_right = -94.0
+offset_bottom = -238.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="PanelContainer"]
+layout_mode = 2
