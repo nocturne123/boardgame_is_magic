@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://d1e8mf0ftlb3o"]
+[gd_scene load_steps=3 format=3 uid="uid://d1e8mf0ftlb3o"]
 
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_ui.gd" id="1_vctcs"]
+[ext_resource type="Texture2D" uid="uid://bic8vle78dw7j" path="res://assets/card_library/playable/actions/物理攻击.png" id="2_q2x5g"]
 
 [node name="BaseCardUI" type="Control"]
 layout_mode = 3
@@ -11,8 +12,9 @@ script = ExtResource("1_vctcs")
 
 [node name="Frontface" type="TextureRect" parent="."]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 595.0
+offset_bottom = 842.0
+texture = ExtResource("2_q2x5g")
 
 [node name="Backface" type="TextureRect" parent="."]
 layout_mode = 0

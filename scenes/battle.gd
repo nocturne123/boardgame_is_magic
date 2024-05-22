@@ -1,7 +1,7 @@
 extends Node2D
 #这个脚本模仿example2里面的主脚本来写
 
-@onready var card_pile_ui = $CardPileUI
+@onready var card_pile_ui = $card_layer/CardPileUI
 @onready var targeting_line_2d = $TargetingLine2D
 @onready var panel_container = $PanelContainer
 @onready var rich_text_label = $PanelContainer/RichTextLabel
@@ -33,5 +33,6 @@ func _process(delta):
 		var target_pos = current_hovered_card.position
 		target_pos.y += 80
 		target_pos.x += 180
-		panel_container.position = target_pos
+		panel_container.position = target_pos - Vector2(400,400)
+		#print(target_pos)
 		targeting_line_2d.set_point_position(1, get_global_mouse_position())

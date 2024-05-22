@@ -29,9 +29,9 @@ enum PilesCardLayouts {
 @export var extended_card_ui : PackedScene
 
 @export_group("Pile Positions")
-@export var draw_pile_position = Vector2(-1200, 460)
-@export var hand_pile_position = Vector2(0, 460)
-@export var discard_pile_position = Vector2(1200, 460)
+@export var draw_pile_position = Vector2(40, 600)
+@export var hand_pile_position = Vector2(800, 600)
+@export var discard_pile_position = Vector2(1080, 600)
 
 @export_group("Pile Displays")
 @export var stack_display_gap := 8
