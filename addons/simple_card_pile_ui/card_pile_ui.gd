@@ -29,9 +29,9 @@ enum PilesCardLayouts {
 @export var extended_card_ui : PackedScene
 
 @export_group("Pile Positions")
-@export var draw_pile_position = Vector2(20, 460)
-@export var hand_pile_position = Vector2(630, 460)
-@export var discard_pile_position = Vector2(1250, 460)
+@export var draw_pile_position = Vector2(-1200, 460)
+@export var hand_pile_position = Vector2(0, 460)
+@export var discard_pile_position = Vector2(1200, 460)
 
 @export_group("Pile Displays")
 @export var stack_display_gap := 8
@@ -52,7 +52,7 @@ enum PilesCardLayouts {
 @export var hand_face_up := true
 @export var max_hand_size := 10 # if any more cards are added to the hand, they are immediately discarded
 @export var max_hand_spread := 700
-@export var card_ui_hover_distance := 30
+@export var card_ui_hover_distance := 60
 @export var drag_when_clicked := true
 ## This works best as a 2-point linear rise from -X to +X
 @export var hand_rotation_curve : Curve
