@@ -50,10 +50,23 @@ func _ready():
 	connect("mouse_exited", _on_mouse_exited)
 	connect("gui_input", _on_gui_input)
 	if frontface_texture:
+		#修改逻辑，把材质和大小分离
+		var front_texture = load(frontface_texture)
+		var back_texture = load(backface_texture)
+		
+		var texture_scale = 0.1
+		
+		var texture_size = front_texture.get_size()
+		var small_size = texture_size * texture_scale
+		custom_minimum_size = small_size
+		
+		
+		
 		frontface.texture = load(frontface_texture)
 		backface.texture = load(backface_texture)
-		custom_minimum_size = frontface.texture.get_size()
-		pivot_offset = frontface.texture.get_size() / 2
+
+		
+		pivot_offset = small_size / 2
 		mouse_filter = Control.MOUSE_FILTER_PASS
 
 
@@ -74,6 +87,8 @@ func _card_can_be_interacted_with():
 
 
 func _on_mouse_enter():
+	
+	custom_minimum_size = frontface.texture.get_size()
 	#check if is hovering should be turned on
 	if _card_can_be_interacted_with():
 		mouse_is_hovering = true
@@ -81,6 +96,8 @@ func _on_mouse_enter():
 		var parent = get_parent()
 		parent.reset_card_ui_z_index()
 		emit_signal("card_hovered", self)
+		
+
 
 
 func _on_mouse_exited():

@@ -14,9 +14,11 @@ script = ExtResource("1_vctcs")
 layout_mode = 0
 offset_right = 595.0
 offset_bottom = 842.0
+scale = Vector2(0.2, 0.2)
 texture = ExtResource("2_q2x5g")
 
 [node name="Backface" type="TextureRect" parent="."]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+scale = Vector2(0.2, 0.2)
