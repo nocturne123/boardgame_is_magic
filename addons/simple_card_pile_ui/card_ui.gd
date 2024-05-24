@@ -87,8 +87,6 @@ func _card_can_be_interacted_with():
 
 
 func _on_mouse_enter():
-	
-	custom_minimum_size = frontface.texture.get_size()
 	#check if is hovering should be turned on
 	if _card_can_be_interacted_with():
 		mouse_is_hovering = true

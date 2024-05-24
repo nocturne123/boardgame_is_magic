@@ -23,11 +23,12 @@ func _input(event):
 			#var global_clicked = event.position
 			var global_pos = event.position
 			var local_pos = get_offset()
-			print("全局鼠标坐标:{0}".format([global_pos]))
-			print("本地坐标:{0}".format([local_pos]))
+			#print("全局鼠标坐标:{0}".format([global_pos]))
+			#print("本地坐标:{0}".format([local_pos]))
 			
 			var global_trans = get_final_transform()
-			print(global_trans)
+			print(event.position)
+			print(global_trans*event.position)
 			
 			
 			

@@ -6,8 +6,14 @@ extends Node2D
 @onready var panel_container = $card_layer/PanelContainer
 @onready var rich_text_label = $card_layer/PanelContainer/RichTextLabel
 
+@onready var maud_pie = $player_layer/Player
+@onready var map_layer = $map_layer
+@onready var map = $map_layer/default_world_map
+
 var current_hovered_card : CardUI
 func _ready():
+	
+	#卡牌统的初始化
 	card_pile_ui.draw(5)
 	card_pile_ui.connect("card_hovered", func(card_ui):
 		rich_text_label.text = card_ui.card_data.format_description()
@@ -25,6 +31,11 @@ func _ready():
 	card_pile_ui.connect("card_dropped", func(_card_ui):
 		targeting_line_2d.visible = false
 	)
+	
+	#玩家位置的初始化
+	#这里transform2d和vector的顺序很重要，详见官方矩阵教程
+	#利用map_layer的transform2d乘算灰琪的地图内坐标，得到全局内的位置坐标，后期玩家图层有缩放的话这里要重写
+	maud_pie.position = map_layer.get_final_transform()*map.map_to_local(maud_pie.map_position)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

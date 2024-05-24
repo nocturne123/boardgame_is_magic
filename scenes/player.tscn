@@ -1,11 +1,13 @@
 [gd_scene load_steps=4 format=3 uid="uid://d3lw8xail3jmj"]
 
-[ext_resource type="Texture2D" uid="uid://bbreslocqwucb" path="res://assets/raw_character/svg_pony_from_cloudyglow/灰琪.svg" id="1_5liga"]
+[ext_resource type="Texture2D" uid="uid://br8a5kx6q6xms" path="res://assets/raw_character/mlp_vector_club/maud.png" id="1_fbqyk"]
 [ext_resource type="Script" path="res://source_codes/players/player.gd" id="1_mq2hv"]
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_dropzone.gd" id="3_itngo"]
 
 [node name="Player" type="Sprite2D"]
-texture = ExtResource("1_5liga")
+position = Vector2(27.25, 29.7163)
+scale = Vector2(0.116304, 0.116304)
+texture = ExtResource("1_fbqyk")
 script = ExtResource("1_mq2hv")
 
 [node name="CardDropzone" type="Control" parent="."]
