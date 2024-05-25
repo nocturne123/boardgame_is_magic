@@ -12,8 +12,6 @@ enum LivingState {Alive,Fainted,Dead}
 @export var turn_stage = PlayerState.Wait
 @export var map_position:Vector2i
 
-var is_on_drag = false
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	#map_position = Vector2i(0,0)
@@ -24,11 +22,6 @@ func _ready():
 func _process(delta):
 	pass
 
-func _input(event):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if get_rect().has_point(to_local(event.position)):
-			is_on_drag = true
-		else :
-			is_on_drag = false
+
 
 	

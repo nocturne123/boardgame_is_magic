@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://cu24tyomca5vi"]
+[gd_scene load_steps=10 format=3 uid="uid://cu24tyomca5vi"]
 
 [ext_resource type="Script" path="res://scenes/battle.gd" id="1_f78yo"]
 [ext_resource type="Script" path="res://source_codes/layer_control/map_layer.gd" id="2_kdkri"]
 [ext_resource type="TileSet" uid="uid://cxiuyapdll1p" path="res://scenes/hex_tileset_v3.tres" id="3_sofs0"]
 [ext_resource type="Script" path="res://source_codes/map_and_block/default_world_map.gd" id="4_3y37i"]
+[ext_resource type="Script" path="res://source_codes/layer_control/player_layer.gd" id="5_7yxac"]
 [ext_resource type="PackedScene" uid="uid://d3lw8xail3jmj" path="res://scenes/player.tscn" id="5_fj7km"]
 [ext_resource type="Script" path="res://source_codes/layer_control/card_layer.gd" id="6_k7akh"]
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_pile_ui.gd" id="7_ryvx5"]
@@ -26,6 +27,7 @@ script = ExtResource("4_3y37i")
 
 [node name="player_layer" type="CanvasLayer" parent="."]
 layer = 2
+script = ExtResource("5_7yxac")
 
 [node name="Player" parent="player_layer" instance=ExtResource("5_fj7km")]
 map_position = Vector2i(1, 0)

@@ -11,6 +11,12 @@ extends Node2D
 @onready var map = $map_layer/default_world_map
 
 var current_hovered_card : CardUI
+
+#拖拽相关数据
+var is_draging_player = false
+var temporary_player_coord:Vector2i
+
+
 func _ready():
 	
 	#卡牌统的初始化
@@ -47,3 +53,22 @@ func _process(delta):
 		panel_container.position = target_pos + Vector2(-300,-200)
 		#print(target_pos)
 		targeting_line_2d.set_point_position(1, get_global_mouse_position())
+		
+#简单考虑后决定先把玩家的拖拽逻辑放在这里，先将玩家作为一个数据类看待
+#因为拖拽涉及到地图的交互，在这里可以直接通过子节点访问到地图，省去了信号的沟通
+func _input(event):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if maud_pie.get_rect().has_point(maud_pie.to_local(event.position)):
+			is_draging_player = true
+			print("drag set true")
+			temporary_player_coord = maud_pie.map_position
+			print(maud_pie.map_position)
+		else :
+			is_draging_player = false
+			print("drag set false")
+			
+	if event is InputEventMouseMotion and is_draging_player:
+		maud_pie.position = event.position
+		
+	if event is InputEventMouseButton and event.is_released() and event.button_index == MOUSE_BUTTON_LEFT:
+		is_draging_player = false
