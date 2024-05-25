@@ -1,11 +1,8 @@
 class_name MapLayer extends CanvasLayer
 
-# Called when the node enters the scene tree for the first time.
 func _ready():
 	scale = Vector2(2,2)
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass
 
@@ -23,14 +20,15 @@ func _input(event):
 			#var global_clicked = event.position
 			var global_pos = event.position
 			var local_pos = get_offset()
-			#print("全局鼠标坐标:{0}".format([global_pos]))
-			#print("本地坐标:{0}".format([local_pos]))
 			
 			var global_trans = get_final_transform()
 			print(event.position)
 			print(global_trans*event.position)
 			
-			
-			
-			#这个是打印鼠标
-			#print(event.get_button_index())
+	#下面是利用Q、E控制地图的旋转，考虑到2d游戏旋转起来效果很差，暂时不需要这种操作
+	#if event is InputEventKey:
+		#if event.pressed:
+			#if event.keycode == KEY_E:
+				#rotation += 0.1
+			#if event.keycode == KEY_Q:
+				#rotation -= 0.1
