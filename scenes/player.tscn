@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_dropzone.gd" id="3_itngo"]
 
 [node name="Player" type="Sprite2D"]
+texture_filter = 1
 position = Vector2(1.90735e-06, 3.8147e-06)
 scale = Vector2(0.1, 0.1)
 texture = ExtResource("1_fbqyk")
