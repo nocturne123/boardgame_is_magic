@@ -62,8 +62,8 @@ func _ready():
 		
 		
 		
-		frontface.texture = load(frontface_texture)
-		backface.texture = load(backface_texture)
+		frontface.texture = front_texture
+		backface.texture = back_texture
 
 		
 		pivot_offset = small_size / 2

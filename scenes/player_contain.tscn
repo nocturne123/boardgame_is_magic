@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://jh7y82m8xxrg"]
+
+[ext_resource type="Script" path="res://source_codes/map_and_block/player_contain.gd" id="1_6ebbf"]
+
+[node name="PlayerContain" type="HBoxContainer"]
+script = ExtResource("1_6ebbf")

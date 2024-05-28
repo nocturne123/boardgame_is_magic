@@ -4,9 +4,9 @@
 [ext_resource type="Script" path="res://source_codes/players/player.gd" id="1_mq2hv"]
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_dropzone.gd" id="3_itngo"]
 
-[node name="Player" type="Sprite2D"]
+[node name="PLayer" type="Sprite2D"]
 texture_filter = 1
-position = Vector2(1.90735e-06, 3.8147e-06)
+position = Vector2(23, 25)
 scale = Vector2(0.1, 0.1)
 texture = ExtResource("1_fbqyk")
 script = ExtResource("1_mq2hv")
@@ -14,6 +14,8 @@ script = ExtResource("1_mq2hv")
 [node name="CardDropzone" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 2.45999
+offset_top = 0.653992
+offset_right = 48.46
+offset_bottom = 50.654
 script = ExtResource("3_itngo")

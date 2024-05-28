@@ -1,0 +1,58 @@
+[gd_scene load_steps=5 format=3 uid="uid://duy26wswc56kk"]
+
+[ext_resource type="PackedScene" uid="uid://jh7y82m8xxrg" path="res://scenes/player_contain.tscn" id="1_og1up"]
+[ext_resource type="Texture2D" uid="uid://br8a5kx6q6xms" path="res://assets/raw_character/mlp_vector_club/maud.png" id="2_omya0"]
+[ext_resource type="Texture2D" uid="uid://cy3olp2mfh5an" path="res://assets/raw_character/mlp_vector_club/derpy.png" id="3_jfut4"]
+[ext_resource type="Texture2D" uid="uid://ctc5wpu5mv8pj" path="res://assets/raw_character/mlp_vector_club/sun_burst.png" id="4_tjwn8"]
+
+[node name="BlockDragDropTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 66.0
+offset_top = 2.0
+offset_right = 66.0
+offset_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerContain" parent="." instance=ExtResource("1_og1up")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.104
+anchor_top = 0.07
+anchor_right = 1.191
+anchor_bottom = 1.186
+offset_left = 98.12
+offset_top = 103.6
+offset_right = -159.48
+offset_bottom = -157.92
+alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="PlayerContain"]
+layout_mode = 2
+texture = ExtResource("2_omya0")
+stretch_mode = 3
+
+[node name="TextureRect2" type="TextureRect" parent="PlayerContain"]
+layout_mode = 2
+texture = ExtResource("3_jfut4")
+stretch_mode = 3
+
+[node name="TextureRect3" type="TextureRect" parent="PlayerContain"]
+layout_mode = 2
+texture = ExtResource("4_tjwn8")
+stretch_mode = 3
+
+[node name="PlayerContain2" parent="." instance=ExtResource("1_og1up")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.572
+anchor_top = 0.361
+anchor_right = 0.874
+anchor_bottom = 0.5
+offset_left = 71.84
+offset_top = 12.08
+offset_right = -314.72
+offset_bottom = -88.0

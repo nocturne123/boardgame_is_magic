@@ -26,8 +26,6 @@ script = ExtResource("4_3y37i")
 
 [node name="Player" parent="map_layer" instance=ExtResource("5_fj7km")]
 z_index = 1
-texture_filter = 0
-map_position = Vector2i(1, 0)
 
 [node name="card_layer" type="CanvasLayer" parent="."]
 layer = 3
