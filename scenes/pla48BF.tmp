@@ -1,13 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://d3lw8xail3jmj"]
+[gd_scene load_steps=7 format=3 uid="uid://d3lw8xail3jmj"]
 
 [ext_resource type="Texture2D" uid="uid://br8a5kx6q6xms" path="res://assets/raw_character/mlp_vector_club/maud.png" id="1_fbqyk"]
 [ext_resource type="Script" path="res://source_codes/players/player.gd" id="1_mq2hv"]
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_dropzone.gd" id="3_itngo"]
 [ext_resource type="Script" path="res://source_codes/players/actions/ActionTree.gd" id="4_f5s02"]
-[ext_resource type="Script" path="res://source_codes/players/actions/DecreaseHealth.gd" id="6_jpcrm"]
+[ext_resource type="Script" path="res://source_codes/players/actions/ReduceHealth.gd" id="5_frpvt"]
 [ext_resource type="Script" path="res://source_codes/players/actions/BaseAction.gd" id="6_lrpp3"]
-[ext_resource type="Script" path="res://source_codes/players/actions/ReceiveDamage.gd" id="7_bwsx5"]
-[ext_resource type="Script" path="res://source_codes/players/actions/LivingUpdate.gd" id="8_0cah0"]
 
 [node name="PLayer" type="Sprite2D"]
 texture_filter = 1
@@ -31,11 +29,5 @@ script = ExtResource("4_f5s02")
 [node name="BaseAction" type="Node" parent="ActionTree"]
 script = ExtResource("6_lrpp3")
 
-[node name="DecreaseHealth" type="Node" parent="ActionTree"]
-script = ExtResource("6_jpcrm")
-
-[node name="ReceiveDamage" type="Node" parent="ActionTree"]
-script = ExtResource("7_bwsx5")
-
-[node name="LivingUpdate" type="Node" parent="ActionTree"]
-script = ExtResource("8_0cah0")
+[node name="ReduceHealth" type="Node" parent="ActionTree"]
+script = ExtResource("5_frpvt")
