@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://d3lw8xail3jmj" path="res://scenes/player.tscn" id="5_fj7km"]
 [ext_resource type="Script" path="res://source_codes/layer_control/card_layer.gd" id="6_k7akh"]
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_pile_ui.gd" id="7_ryvx5"]
-[ext_resource type="PackedScene" uid="uid://d1e8mf0ftlb3o" path="res://scenes/base_card.tscn" id="8_4p4mi"]
+[ext_resource type="PackedScene" uid="uid://b540vgnfqa3d5" path="res://scenes/base_card.tscn" id="8_4p4mi"]
 
 [node name="battle" type="Node2D"]
 script = ExtResource("1_f78yo")

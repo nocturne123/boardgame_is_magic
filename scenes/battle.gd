@@ -18,7 +18,7 @@ var temporary_player_coord:Vector2i
 
 
 func _ready():
-	
+	print("hello world")
 	#卡牌统的初始化
 	card_pile_ui.draw(5)
 	card_pile_ui.connect("card_hovered", func(card_ui):
