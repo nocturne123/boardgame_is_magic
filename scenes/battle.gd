@@ -7,6 +7,8 @@ extends Node2D
 @onready var rich_text_label = $card_layer/PanelContainer/RichTextLabel
 
 @onready var maud_pie = $map_layer/Player
+@onready var sun_burst = $map_layer/Player2
+
 @onready var map_layer = $map_layer
 @onready var map = $map_layer/default_world_map
 
@@ -15,6 +17,9 @@ var current_hovered_card : CardUI
 #拖拽相关数据
 var is_draging_player = false
 var temporary_player_coord:Vector2i
+
+#当前活动玩家，当有玩家回合开始时，此项切换
+var current_player:Player
 
 
 func _ready():
@@ -42,6 +47,7 @@ func _ready():
 	#这里transform2d和vector的顺序很重要，详见官方矩阵教程
 	#利用map_layer的transform2d乘算灰琪的地图内坐标，得到map_layer内的位置坐标，后期玩家图层有缩放的话这里要重写
 	maud_pie.position = map.to_global(map.map_to_local(maud_pie.map_position))
+	sun_burst.position = map.to_global(map.map_to_local(sun_burst.map_position))
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

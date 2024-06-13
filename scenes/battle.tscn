@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cu24tyomca5vi"]
+[gd_scene load_steps=11 format=3 uid="uid://cu24tyomca5vi"]
 
 [ext_resource type="Script" path="res://scenes/battle.gd" id="1_f78yo"]
 [ext_resource type="Script" path="res://source_codes/layer_control/map_layer.gd" id="2_kdkri"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://source_codes/map_and_block/default_world_map.gd" id="4_3y37i"]
 [ext_resource type="PackedScene" uid="uid://d3lw8xail3jmj" path="res://scenes/player.tscn" id="5_fj7km"]
 [ext_resource type="Script" path="res://source_codes/layer_control/card_layer.gd" id="6_k7akh"]
+[ext_resource type="Texture2D" uid="uid://ctc5wpu5mv8pj" path="res://assets/raw_character/mlp_vector_club/sun_burst.png" id="6_yuhji"]
+[ext_resource type="Script" path="res://source_codes/players/player.gd" id="7_gm5lg"]
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_pile_ui.gd" id="7_ryvx5"]
 [ext_resource type="PackedScene" uid="uid://b540vgnfqa3d5" path="res://scenes/base_card.tscn" id="8_4p4mi"]
 
@@ -26,6 +28,12 @@ script = ExtResource("4_3y37i")
 
 [node name="Player" parent="map_layer" instance=ExtResource("5_fj7km")]
 z_index = 1
+
+[node name="Player2" type="Sprite2D" parent="map_layer"]
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("6_yuhji")
+script = ExtResource("7_gm5lg")
+map_position = Vector2i(2, -2)
 
 [node name="card_layer" type="CanvasLayer" parent="."]
 layer = 3

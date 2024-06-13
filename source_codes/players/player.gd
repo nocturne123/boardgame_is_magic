@@ -4,14 +4,6 @@ enum Species {EarthPony, Unicorn, Pegasi, Alicon, others}
 enum PlayerState {Wait, Draw, Play, Discard}
 enum LivingState {Alive,Fainted,Dead}
 
-signal hand_pile_updated
-#due to the seperate of hand pile and draw,discard pile
-#now func like _maybe_remove and set_card_pile
-#will conmunicate by signal
-#由于手牌、抽牌堆、弃牌堆由card_pile_ui统一管理，这里仅发射信号来通知card_pile_ui
-signal _maybe_remove_from_hand_pile
-signal remove_from_any_dropzone
-
 @export_group("基础属性")
 @export var player_name:String
 #生命值、最大生命值、初始生命值
@@ -47,7 +39,7 @@ signal remove_from_any_dropzone
 #玩家在回合中的移动和攻击次数，回合开始时从上面的属性初始化得到
 @export var move_chance_in_turn:int = 0
 @export var attack_chance_in_turn:int = 0
-#玩家在上一轮的生命值，记录给沙漏使用
+#玩家在上一轮的生命值，记录给沙漏使用，在回合结束时记录
 @export var health_last_turn:int = max_health
 
 @export_group("hand_pile_setting")

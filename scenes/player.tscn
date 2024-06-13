@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://d3lw8xail3jmj"]
+[gd_scene load_steps=13 format=3 uid="uid://d3lw8xail3jmj"]
 
 [ext_resource type="Texture2D" uid="uid://br8a5kx6q6xms" path="res://assets/raw_character/mlp_vector_club/maud.png" id="1_fbqyk"]
 [ext_resource type="Script" path="res://source_codes/players/player.gd" id="1_mq2hv"]
@@ -8,6 +8,10 @@
 [ext_resource type="Script" path="res://source_codes/players/actions/BaseAction.gd" id="6_lrpp3"]
 [ext_resource type="Script" path="res://source_codes/players/actions/ReceiveDamage.gd" id="7_bwsx5"]
 [ext_resource type="Script" path="res://source_codes/players/actions/LivingUpdate.gd" id="8_0cah0"]
+[ext_resource type="Script" path="res://source_codes/players/actions/DrawCard.gd" id="9_kulnw"]
+[ext_resource type="Script" path="res://source_codes/players/actions/TurnStart.gd" id="10_upp5v"]
+[ext_resource type="Script" path="res://source_codes/players/actions/DiscardCard.gd" id="11_ujya1"]
+[ext_resource type="Script" path="res://source_codes/players/actions/UseCard.gd" id="12_jc2s0"]
 
 [node name="PLayer" type="Sprite2D"]
 texture_filter = 1
@@ -39,3 +43,15 @@ script = ExtResource("7_bwsx5")
 
 [node name="LivingUpdate" type="Node" parent="ActionTree"]
 script = ExtResource("8_0cah0")
+
+[node name="DrawCard" type="Node" parent="ActionTree"]
+script = ExtResource("9_kulnw")
+
+[node name="TurnStart" type="Node" parent="ActionTree"]
+script = ExtResource("10_upp5v")
+
+[node name="DiscardCard" type="Node" parent="ActionTree"]
+script = ExtResource("11_ujya1")
+
+[node name="UseCard" type="Node" parent="ActionTree"]
+script = ExtResource("12_jc2s0")
