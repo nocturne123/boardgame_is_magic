@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://ctc5wpu5mv8pj" path="res://assets/raw_character/mlp_vector_club/sun_burst.png" id="6_yuhji"]
 [ext_resource type="Script" path="res://source_codes/players/player.gd" id="7_gm5lg"]
 [ext_resource type="Script" path="res://addons/simple_card_pile_ui/card_pile_ui.gd" id="7_ryvx5"]
-[ext_resource type="PackedScene" uid="uid://b540vgnfqa3d5" path="res://scenes/base_card.tscn" id="8_4p4mi"]
+[ext_resource type="PackedScene" uid="uid://d1e8mf0ftlb3o" path="res://scenes/base_card.tscn" id="8_4p4mi"]
 
 [node name="battle" type="Node2D"]
 script = ExtResource("1_f78yo")
