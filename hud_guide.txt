@@ -1,0 +1,178 @@
+# HUD 实现方式分析与问题成因总结
+
+## 场景结构 (hud_battle.tscn)
+
+HudBattle (Node2D)               ← 根节点，extends Node2D
+├── logic (Node)                  ← 非渲染逻辑节点
+│   ├── CardManager
+│   └── TurnManager
+├── MapLayer (CanvasLayer)        ← 地图渲染层 (默认 layer=1)
+│   ├── Layer0 (TileMapLayer)     ← 六边形 TileMap, position=(501,247), scale=(2,2)
+│   ├── Player1 (Sprite2D)        ← 灰琪精灵
+│   └── Player2 (Sprite2D)        ← 日光耀耀精灵
+└── HudLayer (CanvasLayer)        ← HUD 渲染层 (layer=10)
+
+*注: 原场景中 HudLayer 下还有一个 CardLayer (CanvasLayer, layer=10)，已被移除。*
+
+## HUD 构建流程
+
+所有 HUD 元素在 hud_battle.gd 的 _ready() 中**程序化创建**：
+
+1. _create_ui_root():   创建 MarginContainer + VBox/HBox 布局结构
+2. _create_top_bar():   填充顶部栏 (轮次/回合/当前玩家/结束按钮)
+3. _create_bottom_area(): 填充底部栏 (抽牌堆/手牌区/弃牌堆)
+4. _create_arrow():     创建 CardArrow
+
+## 布局树 (当前代码)
+
+card_layer (CanvasLayer, layer=10)          ← $HudLayer
+└── ui_root (MarginContainer)
+    ├── anchor_left=0, anchor_top=0, anchor_right=0, anchor_bottom=0  (PRESET_TOP_LEFT)
+    ├── offset_right = viewport_width
+    ├── offset_bottom = viewport_height
+    ├── margin_* = 8px (theme override)
+    └── main_vbox (VBoxContainer)
+        ├── top_bar (PanelContainer)
+        │   └── HBoxContainer {round_label, turn_label, current_player_label, Spacer(EXPAND), 结束}
+        ├── middle_hbox (HBoxContainer, SIZE_EXPAND_FILL V, separation=8)
+        │   ├── left_panel (PlayerInfoPanel, min_w=220)
+        │   ├── map_spacer (Control, EXPAND_FILL H+V, MOUSE_FILTER_IGNORE)
+        │   └── right_vbox (VBoxContainer, min_w=200)
+        │       ├── card_detail_panel (PanelContainer, EXPAND_FILL V)
+        │       └── log_panel (PanelContainer, EXPAND_FILL V)
+        └── bottom_area (PanelContainer)
+            └── HBoxContainer {抽牌堆 | spacer | hand_container | spacer | 弃牌堆}
+
+## 问题成因总结
+
+### 问题表现
+整个 HUD（顶部栏、左侧面板、右侧面板、底部栏）在窗口外部不可见。
+
+### 根因
+
+**Godot 4 中 CanvasLayer 不是 Control。**
+
+当 Control（MarginContainer）的父节点是 CanvasLayer（Node 而非 Control）时，
+Control 的 anchor 参照物（锚定目标）必须是最近的 Control 祖先。如果只有
+CanvasLayer，Godot 会回退到视口作为参照。但这个回退机制不稳定——
+
+- `set_anchors_preset(PRESET_FULL_RECT)`：设置 anchors=(0,0)→(1,1)。
+  当父节点不是 Control 时，1:1 比例可能解析为 (0,0) 或无法正确获取视口大小。
+- `set_anchors_and_offsets_preset(PRESET_FULL_RECT)`：同上，额外设置 offset=0。
+- 结果：Control 的 rect 为 (0,0)，HUD 全部不可见。
+
+### 已尝试的修复
+
+1. **中间层 Control 法** (控制变量: root_anchor)
+   在 CanvasLayer 和 MarginContainer 之间插入一个 Control 节点，
+   用 PRESET_FULL_RECT 锚定。但 Control 的父仍是 CanvasLayer，同样的问题。
+
+2. **移除嵌套 CanvasLayer** (控制变量: CardLayer 嵌套)
+   原场景中 HudLayer 下还有一个 CardLayer (CanvasLayer)，
+   双层嵌套使 anchor 解析更复杂。已移除。
+
+3. **显式尺寸法** (当前方案)
+   弃用 anchor，改用 PRESET_TOP_LEFT 锚定在左上角，
+   然后直接从 viewport 读取尺寸设置 offset_right/offset_bottom：
+   ```
+   var vp_size := get_viewport().get_visible_rect().size
+   ui_root.offset_right = vp_size.x
+   ui_root.offset_bottom = vp_size.y
+   ```
+   并连接 get_tree().root.size_changed 信号响应窗口 resize。
+
+4. **PlayerInfoPanel 约束**
+   RichTextLabel.fit_content=true 会导致 label 基于文本内容无限扩展，
+   推挤右侧面板溢出窗口。已改为 ScrollContainer 包装 + SIZE_FILL。
+
+### 已应用的修复总结
+
+1. **移除嵌套 CanvasLayer**
+   原场景 HudLayer → CardLayer (嵌套 CanvasLayer) 已被移除。
+   `card_layer` 现直接指向 `$HudLayer`。
+
+2. **中间层 Control + 显式尺寸锚定**
+   `_create_ui_root()` 中：
+   - 创建 `_hud_container` (Control) 直接加入 `card_layer`
+   - `_hud_container` 的 size 不依赖 anchor，通过 `get_window().size` 显式设置
+   - **关键细节: `_resize_hud()` 必须在 `ui_root.set_anchors_and_offsets_preset()` 之前调用**
+   - 如果顺序反了: PRESET_FULL_RECT 读取 `_hud_container.size` 时为 (0,0) →
+     ui_root 的 offset 被设为 0，HUD 全部不可见
+   - `ui_root` (MarginContainer) 成为 `_hud_container` 的子节点
+   - `PRESET_FULL_RECT` 现在有了 Control 父节点可以正确参照
+   - `get_window().size_changed` 信号连接 `_resize_hud()` 响应 resize
+
+3. **延迟 UI 创建到 viewport 就绪后**
+   `_ready()` 中仅初始化非 UI 系统，通过 `call_deferred("_deferred_start")`
+   在首个空闲帧创建 UI + 启动游戏。
+
+4. **RichTextLabel 自动换行**
+   所有 RichTextLabel 添加 `autowrap_mode = TextServer.AUTOWRAP_WORD_SMART`，
+   防止文本不换行导致容器无限扩展。
+
+5. **PlayerInfoPanel 改为 ScrollContainer**
+   避免 content 溢出面板，panel 保持固定宽度。
+
+### 核心思路
+
+```
+CanvasLayer (layer=10)  ← 只是渲染层，不是 Control
+  └── _hud_container (Control)
+      ├── 直接设 size = get_window().size，不依赖 anchor
+      └── ui_root (MarginContainer, PRESET_FULL_RECT)
+          └── 所有 HUD 子控件
+              └── anchor 参照 _hud_container (Control ✓)
+```
+
+`_hud_container` 是第一个 Control，其 size 手动设置（不看 parent）。
+它之后的所有 Control 都有 Control 祖先来做 anchor 参照。
+
+
+
+# 第 N+1 次尝试（最终修复）— 2026/05/25
+
+## 问题根因
+
+1. **CanvasLayer 不是 Control** — 其子 Controls 的 anchor 无法可靠参照父节点。
+2. **Container.set_size() 会被 minimum size 覆盖** — MarginContainer/HBoxContainer/VBoxContainer
+   的 set_size() 会取 max(设定值, get_combined_minimum_size())。
+3. **CardSprite.custom_minimum_size = (100, 140)** — 11 张手牌总最小宽度 ≈ 1100px，
+   超过 1152px 窗口宽度 → VBoxContainer 溢出窗口，右侧面板不可见。
+
+## 最终方案
+
+```
+CanvasLayer (HudLayer, layer=10)
+  └── _hud_container (Control)  ← 普通 Control，set_size() 可靠
+      └── main_vbox (VBoxContainer)
+          ├── PRESET_FULL_RECT + 8px 偏移（内边距）
+          ├── clip_contents = true  ← 防御性裁剪
+          ├── top_bar
+          ├── middle_hbox (左信息 | 地图透明区 | 右面板)
+          └── bottom_area
+              ├── draw_pile_sprite
+              ├── hand_fan (HandFan)  ← 扇形重叠手牌
+              │   └── 卡牌重叠排列，悬停弹出放大
+              └── discard_pile_sprite
+```
+
+## HandFan 工作原理
+
+1. 卡牌以 CARD_STEP_MIN(55px) ~ card_width(100px) 步进排布
+2. 全部卡牌居中显示
+3. 悬停时：z_index=100 + 向上浮起 24px + 1.1× 缩放
+4. 离卡时：动画返回原位（已选中卡除外）
+5. 切换/取消选中：外部调用 return_card() 收回
+
+## 关键设计决策
+
+- **_hud_container 用普通 Control，不用 Container**：
+  这是因为 set_size() 在普通 Control 上可靠，Container 会受子节点 minimum 约束。
+- **不用 PRESET_FULL_RECT 给 _hud_container**：
+  因为 _hud_container 的父节点是 CanvasLayer（Node），anchor 不可靠。
+  _hud_container 直接用 set_size(get_window().size)。
+- **main_vbox 用 PRESET_FULL_RECT**：
+  父节点 _hud_container 是 Control 且有正确 size，所以 anchor 可用。
+- **手牌不直接放入 HBoxContainer**：
+  使用 HandFan（自定义 Control）管理卡牌位置，通过 step 计算重叠排列，
+  避免单个卡牌的 custom_minimum_size 撑大整体布局。

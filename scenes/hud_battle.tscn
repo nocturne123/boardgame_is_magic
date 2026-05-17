@@ -1,0 +1,349 @@
+[gd_scene format=4 uid="uid://bvhasityrwlyt"]
+
+[ext_resource type="Script" uid="uid://baqpusup6665f" path="res://source_codes/hud/hud_battle.gd" id="1_hudbattle"]
+[ext_resource type="Script" uid="uid://c4hwvsisnvd05" path="res://source_codes/card_system/card_manager.gd" id="2_cardmgr"]
+[ext_resource type="Script" uid="uid://ddoqwew38i6ga" path="res://source_codes/turn_manager.gd" id="3_turnmgr"]
+[ext_resource type="Script" uid="uid://84frhtknc1r2" path="res://source_codes/layer_control/map_layer.gd" id="4_maplayer"]
+[ext_resource type="TileSet" uid="uid://cxiuyapdll1p" path="res://scenes/hex_tileset_v3.tres" id="5_tileset"]
+[ext_resource type="PackedScene" uid="uid://d3lw8xail3jmj" path="res://scenes/player.tscn" id="6_player"]
+[ext_resource type="Texture2D" uid="uid://crqfb0fvme5mc" path="res://assets/raw_character/mlp_vector_club/sun_burst.png" id="7_sunburst"]
+[ext_resource type="Script" uid="uid://buj6ft1vvdf2f" path="res://addons/hexagon_tilemaplayer/hexagon_tilemaplayer.gd" id="8_hexlayer"]
+[ext_resource type="Script" uid="uid://h4l3ra1jk4l" path="res://source_codes/hud/player_info_panel.gd" id="9_playerpanel"]
+[ext_resource type="Script" uid="uid://b8uk0acsmj40p" path="res://source_codes/hud/hand_fan.gd" id="10_handfan"]
+[ext_resource type="Script" uid="uid://cxh5ywy304wib" path="res://source_codes/hud/card_pile_sprite.gd" id="11_pilesprite"]
+[ext_resource type="Script" uid="uid://d4j2n53a1gpwg" path="res://source_codes/hud/equipment_bar.gd" id="12_equipbar"]
+[ext_resource type="Script" uid="uid://dk571dqv85q03" path="res://source_codes/hud/equipment_slot.gd" id="13_equipslot"]
+[ext_resource type="Script" uid="uid://d8t5f2wxx0ne" path="res://source_codes/skills/skill_manager.gd" id="14_skillmgr"]
+[ext_resource type="Script" uid="uid://tg3n82x5l2b0" path="res://source_codes/event_system/event_manager.gd" id="15_eventmgr"]
+[ext_resource type="Script" uid="uid://6s6tm78kidgd" path="res://source_codes/event_system/event_deck.gd" id="16_eventdeck"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_topbar"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.06, 0.05, 0.04, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_carddetail"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.08, 0.07, 0.06, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.22, 0.2, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_log"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.06, 0.05, 0.04, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_bottom"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.06, 0.05, 0.04, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="HudBattle" type="Node2D" unique_id=1815358809]
+script = ExtResource("1_hudbattle")
+
+[node name="logic" type="Node" parent="." unique_id=2078827843]
+
+[node name="CardManager" type="Node" parent="logic" unique_id=1678972123]
+script = ExtResource("2_cardmgr")
+metadata/_custom_type_script = "uid://c4hwvsisnvd05"
+
+[node name="TurnManager" type="Node" parent="logic" unique_id=1854095362]
+script = ExtResource("3_turnmgr")
+metadata/_custom_type_script = "uid://ddoqwew38i6ga"
+
+[node name="SkillManager" type="Node" parent="logic" unique_id=1854095363]
+script = ExtResource("14_skillmgr")
+
+[node name="EventManager" type="Node" parent="logic" unique_id=1372375922]
+script = ExtResource("15_eventmgr")
+
+[node name="EventDeck" type="Node" parent="logic" unique_id=426515669]
+script = ExtResource("16_eventdeck")
+
+[node name="MapLayer" type="CanvasLayer" parent="." unique_id=619093417]
+script = ExtResource("4_maplayer")
+metadata/_custom_type_script = "uid://84frhtknc1r2"
+
+[node name="Layer0" type="TileMapLayer" parent="MapLayer" unique_id=1062677383]
+texture_filter = 1
+use_parent_material = true
+position = Vector2(501.465, 247.755)
+scale = Vector2(2, 2)
+tile_map_data = PackedByteArray("AAAAAAAAAAAAAAEAAAD/////AAAGAAAAAAAAAP//AAAGAAAAAAAAAP7/AAACAAEAAAD///7/AAAAAAAAAAABAAAAAAAAAAAAAAABAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAD+////AAAAAAAAAAD///3/AAAGAAAAAAAAAP3/AAAFAAAAAAABAP7/AAAFAAAAAAABAP//AAAFAAAAAAABAP3/AAAFAAAAAAAAAPz/AAABAAEAAAABAPz/AAAAAAAAAAD9//3/AAAGAAIAAAD+//7/AAAAAAIAAAD+//3/AAAAAAIAAAD+//z/AAAAAAIAAAD///z/AAAAAAIAAAD9//z/AAAFAAAAAAD8//z/AAAFAAAAAAD8//3/AAAAAAIAAAD9//7/AAAFAAAAAAD8//7/AAAFAAAAAAD8////AAAFAAAAAAD8/wAAAAAFAAAAAAD9/wEAAAACAAAAAAD9/wAAAAAAAAAAAAD+/wEAAAAAAAAAAAD//wEAAAAAAAAAAAD+/wAAAAAAAAEAAAD9////AAAAAAIAAAACAP7/AAACAAAAAAADAP//AAACAAAAAAACAAIAAAAAAAEAAAAEAAQAAAAAAAEAAAAGAAYAAAAHAAQAAAAFAAYAAAAFAAAAAAAEAAUAAAAFAAAAAAAFAAUAAAACAAAAAAAGAAUAAAACAAAAAAAFAAMAAAACAAAAAAAFAAQAAAACAAAAAAAGAAQAAAAHAAIAAAAGAAMAAAAEAAEAAAAFAAIAAAACAAAAAAAGAAIAAAACAAAAAAAFAAEAAAACAAAAAAAEAAEAAAACAAAAAAAEAAAAAAAGAAAAAAADAAAAAAAGAAAAAAACAP//AAAAAAAAAAACAP3/AAAAAAAAAAADAP7/AAAAAAAAAAAEAP//AAAAAAAAAAAFAAAAAAAAAAAAAAAGAAEAAAAAAAAAAAADAP3/AAAGAAMAAAAFAP//AAAGAAMAAAACAPz/AAAAAAAAAAAEAP7/AAAAAAAAAAAGAAAAAAAAAAAAAAACAAAAAAAAAAEAAAAEAAIAAAAAAAEAAAACAAQAAAAAAAEAAAAAAAIAAAAAAAEAAAABAAIAAAAAAAAAAAABAAMAAAAAAAAAAAACAAMAAAAAAAAAAAADAAQAAAAAAAAAAAADAAMAAAAAAAAAAAAEAAMAAAAAAAAAAAADAAIAAAAAAAAAAAACAAEAAAAAAAAAAAADAAEAAAAAAAAAAAAEAAYAAAACAAAAAAACAAUAAAACAAAAAAADAAUAAAAAAAAAAAADAAYAAAAAAAAAAAACAAYAAAAAAAAAAAABAAUAAAAFAAAAAAABAAQAAAAGAAAAAAAAAAQAAAAGAAAAAAD//wIAAAAAAAAAAAAAAAMAAAAAAAAAAAD//wMAAAACAAAAAAD+/wIAAAAFAAAAAAD//wAAAAAAAAAAAAA=")
+tile_set = ExtResource("5_tileset")
+script = ExtResource("8_hexlayer")
+
+[node name="Player1" parent="MapLayer" unique_id=1215331566 instance=ExtResource("6_player")]
+position = Vector2(534, 268)
+scale = Vector2(0.07, 0.07)
+
+[node name="Player2" parent="MapLayer" unique_id=138965037 instance=ExtResource("6_player")]
+position = Vector2(624, 323)
+scale = Vector2(0.07, 0.07)
+texture = ExtResource("7_sunburst")
+
+[node name="HudLayer" type="CanvasLayer" parent="." unique_id=882473046]
+layer = 10
+
+[node name="HudContainer" type="Control" parent="HudLayer" unique_id=2100000001]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1152.0
+offset_bottom = -648.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="Margin" type="MarginContainer" parent="HudLayer/HudContainer" unique_id=2100000002]
+layout_mode = 1
+offset_left = 3.0
+offset_top = 5.0
+offset_right = 1143.0
+offset_bottom = 642.0
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="MainVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin" unique_id=2100000003]
+clip_contents = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TopBar" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000004]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_topbar")
+
+[node name="TopHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/TopBar" unique_id=2100000005]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="RoundLabel" type="Label" parent="HudLayer/HudContainer/Margin/MainVBox/TopBar/TopHBox" unique_id=2100000006]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.8, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+text = "轮次 1"
+
+[node name="TurnLabel" type="Label" parent="HudLayer/HudContainer/Margin/MainVBox/TopBar/TopHBox" unique_id=2100000007]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.8, 1)
+theme_override_font_sizes/font_size = 14
+text = "回合 1"
+
+[node name="CurrentPlayerLabel" type="Label" parent="HudLayer/HudContainer/Margin/MainVBox/TopBar/TopHBox" unique_id=2100000008]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.9, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "当前: ——"
+
+[node name="TopSpacer" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/TopBar/TopHBox" unique_id=2100000009]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MoveModeIndicator" type="Label" parent="HudLayer/HudContainer/Margin/MainVBox/TopBar/TopHBox" unique_id=2100000010]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 1, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="EndTurnButton" type="Button" parent="HudLayer/HudContainer/Margin/MainVBox/TopBar/TopHBox" unique_id=2100000011]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "结束回合"
+
+[node name="MiddleHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000012]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="LeftPanel" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=2100000013]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("9_playerpanel")
+
+[node name="MapSpacer" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=2100000014]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="RightVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=2100000015]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CardDetailPanel" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox" unique_id=2100000016]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_carddetail")
+
+[node name="CardDetailVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/CardDetailPanel" unique_id=2100000017]
+layout_mode = 2
+
+[node name="CardDetailTitle" type="Label" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/CardDetailPanel/CardDetailVBox" unique_id=2100000018]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 1)
+theme_override_font_sizes/font_size = 14
+text = "卡牌详情"
+horizontal_alignment = 1
+
+[node name="CDSeparator" type="HSeparator" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/CardDetailPanel/CardDetailVBox" unique_id=2100000019]
+layout_mode = 2
+
+[node name="CardDetailLabel" type="RichTextLabel" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/CardDetailPanel/CardDetailVBox" unique_id=2100000020]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+text = "鼠标悬停卡牌查看详情"
+
+[node name="LogPanel" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox" unique_id=2100000021]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_log")
+
+[node name="LogVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/LogPanel" unique_id=2100000022]
+layout_mode = 2
+
+[node name="LogTitle" type="Label" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/LogPanel/LogVBox" unique_id=2100000023]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.75, 0.65, 1)
+theme_override_font_sizes/font_size = 13
+text = "战斗日志"
+horizontal_alignment = 1
+
+[node name="LogScroll" type="ScrollContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/LogPanel/LogVBox" unique_id=2100000024]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LogLabel" type="RichTextLabel" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/LogPanel/LogVBox/LogScroll" unique_id=2100000025]
+layout_mode = 2
+theme_override_colors/default_color = Color(0.7, 0.65, 0.6, 1)
+theme_override_font_sizes/normal_font_size = 11
+bbcode_enabled = true
+scroll_following = true
+
+[node name="EquipmentBar" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000031]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_bottom")
+script = ExtResource("12_equipbar")
+
+[node name="EquipHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar" unique_id=2100000032]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="WeaponSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000033]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+
+[node name="ArmorSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000034]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+slot_type = 1
+
+[node name="ElementSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000035]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+slot_type = 2
+
+[node name="EquipSpacer" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000036]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CollectionLabel" type="Label" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000037]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "★ 收藏品 (0/3)"
+
+[node name="CollectionTray" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000038]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CollectionSlot0" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox/CollectionTray" unique_id=2100000039]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("13_equipslot")
+slot_type = 3
+is_collection_slot = true
+
+[node name="CollectionSlot1" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox/CollectionTray" unique_id=2100000040]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("13_equipslot")
+slot_type = 3
+is_collection_slot = true
+
+[node name="CollectionSlot2" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox/CollectionTray" unique_id=2100000041]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("13_equipslot")
+slot_type = 3
+is_collection_slot = true
+
+[node name="SkillSeparator" type="VSeparator" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000042]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SkillTray" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000043]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BottomArea" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000026]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_bottom")
+
+[node name="BottomHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea" unique_id=2100000027]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="DrawPile" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox" unique_id=2100000028]
+layout_mode = 2
+script = ExtResource("11_pilesprite")
+
+[node name="HandFan" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox" unique_id=2100000029]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("10_handfan")
+
+[node name="DiscardPile" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox" unique_id=2100000030]
+layout_mode = 2
+script = ExtResource("11_pilesprite")

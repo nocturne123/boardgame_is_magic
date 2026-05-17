@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://d3lw8xail3jmj"]
+
+[ext_resource type="Texture2D" uid="uid://b1k46rrgnl88y" path="res://assets/raw_character/mlp_vector_club/maud.png" id="1_fbqyk"]
+[ext_resource type="Script" uid="uid://cbyj81dadb4q5" path="res://source_codes/players/player.gd" id="1_mq2hv"]
+[ext_resource type="Script" uid="uid://5qbb5ls86jmx" path="res://source_codes/players/actions/ActionTree.gd" id="4_f5s02"]
+[ext_resource type="Script" uid="uid://blfi2mcli63hx" path="res://source_codes/players/actions/DecreaseHealth.gd" id="6_jpcrm"]
+[ext_resource type="Script" uid="uid://bomxa6kpntuda" path="res://source_codes/players/actions/BaseAction.gd" id="6_lrpp3"]
+[ext_resource type="Script" uid="uid://d4dh1qf3x5n0g" path="res://source_codes/players/actions/ReceiveDamage.gd" id="7_bwsx5"]
+[ext_resource type="Script" uid="uid://bk4g52er4we61" path="res://source_codes/players/actions/LivingUpdate.gd" id="8_0cah0"]
+[ext_resource type="Script" uid="uid://i0trlnwirax0" path="res://source_codes/players/actions/DrawCard.gd" id="9_kulnw"]
+[ext_resource type="Script" uid="uid://cadreyhjihse6" path="res://source_codes/players/actions/TurnStart.gd" id="10_upp5v"]
+[ext_resource type="Script" uid="uid://b5atm6yphndr6" path="res://source_codes/players/actions/DiscardCard.gd" id="11_ujya1"]
+[ext_resource type="Script" uid="uid://tu7jyn0c3am5" path="res://source_codes/players/actions/UseCard.gd" id="12_jc2s0"]
+[ext_resource type="Script" uid="uid://ci84xxbgeocra" path="res://source_codes/players/actions/RollDiceEntry.gd" id="13_rollentry"]
+[ext_resource type="Script" path="res://source_codes/players/actions/RollDiceExecute.gd" id="13_rollexecute"]
+[ext_resource type="Script" path="res://source_codes/players/actions/EventTriggerPhase.gd" id="15_eventphase"]
+[ext_resource type="Script" path="res://source_codes/players/actions/MoveAction.gd" id="14_move"]
+
+[node name="PLayer" type="Sprite2D" unique_id=1215331566]
+texture_filter = 1
+texture = ExtResource("1_fbqyk")
+script = ExtResource("1_mq2hv")
+
+[node name="ActionTree" type="Node" parent="." unique_id=1533617923]
+script = ExtResource("4_f5s02")
+
+[node name="BaseAction" type="Node" parent="ActionTree" unique_id=1883189393]
+script = ExtResource("6_lrpp3")
+
+[node name="DecreaseHealth" type="Node" parent="ActionTree" unique_id=1894197071]
+script = ExtResource("6_jpcrm")
+
+[node name="ReceiveDamage" type="Node" parent="ActionTree" unique_id=120221351]
+script = ExtResource("7_bwsx5")
+
+[node name="LivingUpdate" type="Node" parent="ActionTree" unique_id=1445939689]
+script = ExtResource("8_0cah0")
+
+[node name="DrawCard" type="Node" parent="ActionTree" unique_id=829780492]
+script = ExtResource("9_kulnw")
+
+[node name="EventTriggerPhase" type="Node" parent="ActionTree"]
+script = ExtResource("15_eventphase")
+
+[node name="TurnStart" type="Node" parent="ActionTree" unique_id=42650492]
+script = ExtResource("10_upp5v")
+
+[node name="DiscardCard" type="Node" parent="ActionTree" unique_id=2146257977]
+script = ExtResource("11_ujya1")
+
+[node name="UseCard" type="Node" parent="ActionTree" unique_id=1397756153]
+script = ExtResource("12_jc2s0")
+
+[node name="RollDiceEntry" type="Node" parent="ActionTree" unique_id=18216631]
+script = ExtResource("13_rollentry")
+
+[node name="RollDiceExecute" type="Node" parent="ActionTree" unique_id=18216632]
+script = ExtResource("13_rollexecute")
+
+[node name="MoveAction" type="Node" parent="ActionTree" unique_id=2965812345]
+script = ExtResource("14_move")

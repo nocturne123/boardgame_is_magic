@@ -1,0 +1,15 @@
+# Godot
+.godot/
+*.import
+*.tmp
+
+# User data
+user/
+
+# Export
+export/
+
+# IDE
+.vscode/
+.idea/
+.hermes/

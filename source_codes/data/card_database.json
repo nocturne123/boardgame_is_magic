@@ -1,0 +1,633 @@
+[
+  {
+	"nice_name": "物理攻击",
+	"texture_path": "res://assets/card_library/playable/actions/物理攻击.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/physical_attack.gd",
+	"type": "Attack",
+	"identity": "PhysicalAttack",
+	"description": "造成一次物理伤害"
+  },
+  {
+	"nice_name": "心理攻击",
+	"texture_path": "res://assets/card_library/playable/actions/心理攻击.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/mental_attack.gd",
+	"type": "Attack",
+	"identity": "MentalAttack",
+	"description": "造成一次心理伤害"
+  },
+  {
+	"nice_name": "魔法攻击",
+	"texture_path": "res://assets/card_library/playable/actions/法术攻击.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/magic_attack.gd",
+	"type": "Attack",
+	"identity": "MagicAttack",
+	"description": "造成一次魔法伤害"
+  },
+  {
+    "nice_name": "事件触发牌",
+    "texture_path": "res://assets/card_library/playable/actions/触发事件.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/event_system/event_trigger_card.gd",
+    "type": "EventTrigger",
+    "identity": "事件触发牌",
+    "description": "抽到时立即触发一个随机事件，事件结算后摸一张牌。"
+  },
+  {
+	"nice_name": "偷牌",
+	"texture_path": "res://assets/card_library/playable/actions/偷牌.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/steal_card.gd",
+	"type": "Steal",
+	"identity": "偷牌",
+	"description": "选择：偷取目标一张手牌，或弃置目标一张装备牌"
+  },
+  {
+	"nice_name": "宝石",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_1/宝石.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/gem.gd",
+	"type": "Effect",
+	"identity": "宝石",
+	"description": "使此次攻击心理伤害+1并无视防具"
+  },
+  {
+	"nice_name": "奖励牌",
+	"texture_path": "res://assets/card_library/playable/tools/奖励牌.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "奖励牌",
+	"description": ""
+  },
+  {
+	"nice_name": "护身符",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/护身符.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "护身符",
+	"description": ""
+  },
+  {
+	"nice_name": "苹果",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/苹果.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "苹果",
+	"description": ""
+  },
+  {
+	"nice_name": "药剂",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/药剂.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "药剂",
+	"description": ""
+  },
+  {
+	"nice_name": "诚实元素",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/诚实元素.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "诚实元素",
+	"description": ""
+  },
+  {
+	"nice_name": "欢乐元素",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/欢乐元素.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "欢乐元素",
+	"description": ""
+  },
+  {
+	"nice_name": "奖杯",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/奖杯.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "奖杯",
+	"description": ""
+  },
+  {
+	"nice_name": "机器",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/机器.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "机器",
+	"description": ""
+  },
+  {
+	"nice_name": "乐器",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/乐器.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "乐器",
+	"description": ""
+  },
+  {
+	"nice_name": "纸杯蛋糕",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/纸杯蛋糕.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "纸杯蛋糕",
+	"description": ""
+  },
+  {
+	"nice_name": "犁",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/犁.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "犁",
+	"description": ""
+  },
+  {
+	"nice_name": "音响",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/音响.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "音响",
+	"description": ""
+  },
+  {
+	"nice_name": "花束",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/花束.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/equipment/weapon.gd",
+	"type": "Weapon",
+	"identity": "花束",
+	"description": "",
+	"attack_range": 1
+  },
+  {
+	"nice_name": "蝴蝶结",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/蝴蝶结.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "蝴蝶结",
+	"description": ""
+  },
+  {
+	"nice_name": "衣服",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/衣服.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "衣服",
+	"description": ""
+  },
+  {
+	"nice_name": "镜子",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/镜子.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "镜子",
+	"description": ""
+  },
+  {
+	"nice_name": "话筒",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/话筒.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "话筒",
+	"description": ""
+  },
+  {
+	"nice_name": "蹄铁",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/蹄铁.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "蹄铁",
+	"description": ""
+  },
+  {
+	"nice_name": "望远镜",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/望远镜.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "望远镜",
+	"description": ""
+  },
+  {
+	"nice_name": "善良元素",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/善良元素.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "善良元素",
+	"description": ""
+  },
+  {
+	"nice_name": "忠诚元素",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/忠诚元素.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/equipment/element.gd",
+	"type": "Element",
+	"identity": "忠诚元素",
+	"description": ""
+  },
+  {
+	"nice_name": "马芬",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/马芬.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "马芬",
+	"description": ""
+  },
+  {
+	"nice_name": "线轴",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/线轴.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "线轴",
+	"description": ""
+  },
+  {
+	"nice_name": "慷慨元素",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/慷慨元素.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "慷慨元素",
+	"description": ""
+  },
+  {
+	"nice_name": "雷雨云",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/雷雨云.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "雷雨云",
+	"description": ""
+  },
+  {
+	"nice_name": "蛋糕",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/蛋糕.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "蛋糕",
+	"description": ""
+  },
+  {
+	"nice_name": "魔法元素",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/魔法元素.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "魔法元素",
+	"description": ""
+  },
+  {
+	"nice_name": "沙漏",
+	"texture_path": "res://assets/card_library/playable/tools/list/base_pack/沙漏.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "沙漏",
+	"description": ""
+  },
+  {
+	"nice_name": "玩具",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_1/玩具.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "玩具",
+	"description": ""
+  },
+  {
+	"nice_name": "被诅咒的魔法书",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_1/被诅咒的魔法书.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "被诅咒的魔法书",
+	"description": ""
+  },
+  {
+	"nice_name": "故事书",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_1/故事书.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "故事书",
+	"description": ""
+  },
+  {
+	"nice_name": "铠甲",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_1/铠甲.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/equipment/armor.gd",
+	"type": "Armor",
+	"identity": "铠甲",
+	"description": ""
+  },
+  {
+	"nice_name": "王冠",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_1/王冠.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "王冠",
+	"description": ""
+  },
+  {
+	"nice_name": "黑色玄石王座",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_1/黑色玄石王座.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "黑色玄石王座",
+	"description": ""
+  },
+  {
+	"nice_name": "展会工作证",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/展会工作证.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "展会工作证",
+	"description": ""
+  },
+  {
+	"nice_name": "旗袍",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/旗袍.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "旗袍",
+	"description": ""
+  },
+  {
+	"nice_name": "红豆羹",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/红豆羹.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "红豆羹",
+	"description": ""
+  },
+  {
+	"nice_name": "箭矢",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/箭矢.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "箭矢",
+	"description": ""
+  },
+  {
+	"nice_name": "风笛",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/风笛.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "风笛",
+	"description": ""
+  },
+  {
+	"nice_name": "布匹",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/布匹.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "布匹",
+	"description": ""
+  },
+  {
+	"nice_name": "馕饼",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/馕饼.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "馕饼",
+	"description": ""
+  },
+  {
+	"nice_name": "荷花",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/荷花.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "荷花",
+	"description": ""
+  },
+  {
+	"nice_name": "饮料自助",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/饮料自助.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "饮料自助",
+	"description": ""
+  },
+  {
+	"nice_name": "龙珠",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/龙珠.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "龙珠",
+	"description": ""
+  },
+  {
+	"nice_name": "发带",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/发带.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "发带",
+	"description": ""
+  },
+  {
+	"nice_name": "狗皮帽",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/狗皮帽.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "狗皮帽",
+	"description": ""
+  },
+  {
+	"nice_name": "夜明珠",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/夜明珠.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "夜明珠",
+	"description": ""
+  },
+  {
+	"nice_name": "狮狮无人机",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/狮狮无人机.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "狮狮无人机",
+	"description": ""
+  },
+  {
+	"nice_name": "舞狮套装",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_2/舞狮套装.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "舞狮套装",
+	"description": ""
+  },
+  {
+	"nice_name": "甜苹果汁",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/甜苹果汁.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "甜苹果汁",
+	"description": ""
+  },
+  {
+	"nice_name": "石蹄铁铲",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/石蹄铁铲.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "石蹄铁铲",
+	"description": ""
+  },
+  {
+	"nice_name": "耗克斯勒战盔",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/耗克斯勒战盔.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "耗克斯勒战盔",
+	"description": ""
+  },
+  {
+	"nice_name": "魔力探测器",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/魔力探测器.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "魔力探测器",
+	"description": ""
+  },
+  {
+	"nice_name": "纳可波克号角",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/纳可波克号角.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "纳可波克号角",
+	"description": ""
+  },
+  {
+	"nice_name": "聪明驴",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/聪明驴.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "聪明驴",
+	"description": ""
+  },
+  {
+	"nice_name": "斯科潘的信物",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/斯科潘的信物.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "斯科潘的信物",
+	"description": ""
+  },
+  {
+	"nice_name": "暮光权杖",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/暮光权杖.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "暮光权杖",
+	"description": ""
+  },
+  {
+	"nice_name": "膨胀的布丁",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/膨胀的布丁.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "膨胀的布丁",
+	"description": ""
+  },
+  {
+	"nice_name": "尼泰格斯",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/尼泰格斯.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "尼泰格斯",
+	"description": ""
+  },
+  {
+	"nice_name": "梦晶的蒙眼布",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/梦晶的蒙眼布.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "梦晶的蒙眼布",
+	"description": ""
+  },
+  {
+	"nice_name": "彩虹饼干",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/彩虹饼干.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+	"type": "Recovery",
+	"identity": "彩虹饼干",
+	"description": ""
+  },
+  {
+	"nice_name": "星璇日记",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/星璇日记.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "星璇日记",
+	"description": ""
+  },
+  {
+	"nice_name": "格罗佛的王冠",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/格罗佛的王冠.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "格罗佛的王冠",
+	"description": ""
+  },
+  {
+	"nice_name": "奥罗拉项链",
+	"texture_path": "res://assets/card_library/playable/tools/list/extension_3/奥罗拉项链.png",
+	"backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+	"resource_script_path": "res://source_codes/card_system/cards/play/base_play.gd",
+	"type": "Effect",
+	"identity": "奥罗拉项链",
+	"description": ""
+  }
+]
