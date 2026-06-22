@@ -18,6 +18,11 @@ func take_action():
     if event_mgr:
         event_mgr.on_turn_start(player)
 
+    # ★ 地形回合开始效果
+    var terrain_mgr = player.get_meta("terrain_manager")
+    if terrain_mgr and terrain_mgr.has_method("on_turn_start"):
+        terrain_mgr.on_turn_start(player)
+
 func inform_next_action():
     if next_action and next_action.get("draw_num") != null:
         next_action.draw_num = player.draw_stage_card_number

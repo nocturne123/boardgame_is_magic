@@ -19,6 +19,7 @@ signal move_requested(target_cell: Vector2i)
 @onready var skill_mgr: SkillManager = $logic/SkillManager
 @onready var event_mgr: EventManager = $logic/EventManager
 @onready var event_deck: EventDeck = $logic/EventDeck
+@onready var terrain_mgr = $logic/TerrainManager
 @onready var map_layer: MapLayer = $MapLayer
 @onready var map_node: TileMapLayer = $MapLayer/Layer0
 @onready var player_a: Player = $MapLayer/Player1
@@ -39,10 +40,11 @@ signal move_requested(target_cell: Vector2i)
 @onready var card_detail_label: RichTextLabel = $HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/CardDetailPanel/CardDetailVBox/CardDetailLabel
 @onready var log_panel: PanelContainer = $HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/LogPanel
 @onready var log_label: RichTextLabel = $HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/LogPanel/LogVBox/LogScroll/LogLabel
-@onready var draw_pile_sprite: CardPileSprite = $HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox/DrawPile
-@onready var discard_pile_sprite: CardPileSprite = $HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox/DiscardPile
-@onready var hand_fan: HandFan = $HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox/HandFan
-@onready var equipment_bar: EquipmentBar = $HudLayer/HudContainer/Margin/MainVBox/EquipmentBar
+@onready var draw_pile_sprite: CardPileSprite = $HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/DrawPile
+@onready var discard_pile_sprite: CardPileSprite = $HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/DiscardPile
+@onready var hand_fan: HandFan = $HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/HandFan
+@onready var equipment_bar: EquipmentBar = $HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar
+@onready var _skill_tray: HBoxContainer = $HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/SkillRow/SkillTray
 
 # ---- 运行时数据 ----
 var players: Array[Player] = []
@@ -58,6 +60,10 @@ var _arrow_card_sprite: CardSprite = null  # 触发箭头的卡牌 sprite（用�
 var _move_mode: bool = false
 var _move_source: Player = null
 var _move_range: Array[Vector2i] = []
+
+# ---- 水晶洗礼技能目标选择 ----
+var _crystal_shine_mode: bool = false
+var _crystal_shine_skill: SkillData = null
 
 
 # ============================================================
@@ -104,6 +110,7 @@ func _deferred_start() -> void:
     log_panel.gui_input.connect(_on_panel_gui_input)
 
     # 装备栏
+    equipment_bar.set_skill_tray(_skill_tray)
     equipment_bar.setup(turn_mgr.get_current_player(), self)
 
     _setup_turn_system()
@@ -161,6 +168,40 @@ func _setup_players() -> void:
     for p in players:
         p.set_meta("event_manager", event_mgr)
         p.set_meta("all_players", players)
+        p.set_meta("terrain_manager", terrain_mgr)
+
+    # ★ 设置地形
+    _setup_terrain()
+
+
+## 设置地形：在地图上选两个格子作为森林和雪地
+func _setup_terrain() -> void:
+    # 灰琪初始在 cube(0,0,0)，日光耀耀在 cube(2,0,-2)
+    # 选两个相邻可达的格子作为地形
+    # 森林：cube(1,0,-1) — 两人之间的格子
+    var forest_cell: Vector2i = map_node.cube_to_map(Vector3i(1, 0, -1))
+    var forest_effect = preload("res://source_codes/terrain/forest_terrain.gd").new()
+    terrain_mgr.add_terrain(forest_cell, forest_effect)
+    # 雪地：cube(-1,0,1) — 灰琪旁边
+    var snow_cell: Vector2i = map_node.cube_to_map(Vector3i(-1, 0, 1))
+    var snow_effect = preload("res://source_codes/terrain/snow_terrain.gd").new()
+    terrain_mgr.add_terrain(snow_cell, snow_effect)
+    print("[TERRAIN] forest at %s, snow at %s" % [forest_cell, snow_cell])
+
+    # 初始化玩家位置追踪（如有玩家初始就在地形上，触发进入效果）
+    for p in players:
+        terrain_mgr.on_player_moved(p, p.map_position)
+
+    # 地形可视化（tile_hud 在 _create_tile_had 中创建，延迟设置）
+    var terrain_visual: Dictionary = {}
+    terrain_visual[forest_cell] = "forest"
+    terrain_visual[snow_cell] = "snow"
+    call_deferred("_apply_terrain_visual", terrain_visual)
+
+
+func _apply_terrain_visual(data: Dictionary) -> void:
+    if tile_hud:
+        tile_hud.set_terrain_cells(data)
 
 
 func _apply_char_data(p: Player, data: Dictionary) -> void:
@@ -267,33 +308,16 @@ func _setup_turn_system() -> void:
     turn_mgr.last_player_standing.connect(_on_last_player_standing)
     for p in players:
         p.collection_finished.connect(_on_collection_finished.bind(p))
-        # 连接 ActionTree chain_paused 信号
+        # 连接 ActionTree 信号
         var tree = p.get_node_or_null("ActionTree")
         if tree and tree.has_signal("chain_paused"):
             tree.chain_paused.connect(_on_chain_paused)
-            # 自动连接所有 action 节点的 action_info 信号
-            if not tree.child_entered_tree.is_connected(_on_action_node_added.bind(tree)):
-                tree.child_entered_tree.connect(_on_action_node_added.bind(tree))
-            for child in tree.get_children():
-                _connect_action_info_recursive(child)
+            tree.action_executed.connect(_on_action_info)
 
 
 func _start_game() -> void:
     turn_mgr.start_game(0)
     _update_all_ui()
-
-
-## 递归连接 node 及其所有子孙的 action_info 信号
-func _connect_action_info_recursive(node: Node) -> void:
-    if node.has_signal("action_info") and not node.action_info.is_connected(_on_action_info):
-        node.action_info.connect(_on_action_info)
-    for child in node.get_children():
-        _connect_action_info_recursive(child)
-
-
-## ActionTree 新子节点进入时自动连接
-func _on_action_node_added(node: Node, _tree: Node) -> void:
-    _connect_action_info_recursive(node)
 
 
 ## 接收 action 执行信息，转发到战斗日志面板
@@ -734,6 +758,14 @@ func _on_player_clicked(p: Player) -> void:
     left_panel.show_player(p)
     var controller := turn_mgr.get_current_player()
 
+    # --- 水晶洗礼技能目标选择 ---
+    if _crystal_shine_mode:
+        if p == controller:
+            _log("[color=#888]不能对自己使用水晶洗礼[/color]")
+            return
+        _execute_crystal_shine(p)
+        return
+
     # --- 移动模式中：点击移动源角色 → 选择目的地或取消 ---
     if _move_mode:
         if p != _move_source:
@@ -781,6 +813,91 @@ func _on_draw_pile_clicked(_ps: CardPileSprite) -> void:
 
 func _on_discard_pile_clicked(_ps: CardPileSprite) -> void:
     _log("弃牌堆: %d 张" % card_mgr.get_discard_pile_size())
+
+
+# ============================================================
+# 主动技能激活
+# ============================================================
+
+func _on_skill_activated(skill: SkillData) -> void:
+    if skill == null or skill.is_disabled():
+        return
+    match skill.id:
+        "sunburst_cristall_shine":
+            _activate_crystal_shine(skill)
+        "pegasus_freedom":
+            _toggle_terrain_immune(skill)
+
+
+func _toggle_terrain_immune(skill: SkillData) -> void:
+    var controller := turn_mgr.get_current_player()
+    if controller == null:
+        return
+    var new_state: bool = not skill.is_terrain_enabled()
+    skill.set_terrain_enabled(controller, new_state)
+    if new_state:
+        _log("[color=#88ccff]%s 选择受到地形效果[/color]" % controller.player_name)
+        # 重新应用当前地形效果
+        terrain_mgr.on_player_moved(controller, controller.map_position)
+    else:
+        _log("[color=#88ccff]%s 选择免疫地形效果[/color]" % controller.player_name)
+        # 清除地形 meta
+        controller.remove_meta("terrain_attack_range_mod")
+        controller.remove_meta("terrain_blocks_recovery")
+    _update_all_ui()
+
+
+func _activate_crystal_shine(skill: SkillData) -> void:
+    var controller := turn_mgr.get_current_player()
+    if controller == null:
+        return
+    # 必须先选一张手牌作为弃置代价
+    if not selected_card or not selected_card.card_data:
+        _log("[color=#f0a040]请先选择一张手牌作为水晶洗礼的代价[/color]")
+        return
+    if controller.get_hand_size() == 0:
+        _log("[color=#f06060]没有手牌可弃置[/color]")
+        return
+    _crystal_shine_mode = true
+    _crystal_shine_skill = skill
+    _log("[color=#ff6ec7]水晶洗礼已激活：点击目标角色施加印记[/color]")
+
+
+func _execute_crystal_shine(target: Player) -> void:
+    var controller := turn_mgr.get_current_player()
+    if controller == null or selected_card == null:
+        _cancel_crystal_shine()
+        return
+    var card_data: CardData = selected_card.card_data
+    # 获取或创建 CrystalShineExecute 动作节点
+    var tree: Node = controller.get_node_or_null("ActionTree")
+    if tree == null:
+        _cancel_crystal_shine()
+        return
+    var action := tree.get_node_or_null("CrystalShineExecute")
+    if action == null:
+        var scr := load("res://source_codes/skills/actions/crystal_shine_execute.gd")
+        if scr == null:
+            _cancel_crystal_shine()
+            return
+        action = scr.new()
+        action.name = "CrystalShineExecute"
+        tree.add_child(action)
+    # 设置参数并执行
+    action.player = controller
+    action.target = target
+    action.card_to_discard = card_data
+    action.skill = _crystal_shine_skill
+    tree.chain_of_actions(action as BaseAction)
+    _log("%s 弃置 [%s] 对 %s 施加水晶洗礼印记" % [controller.player_name, card_data.nice_name, target.player_name])
+    _cancel_crystal_shine()
+    _reset_selection()
+    _update_all_ui()
+
+
+func _cancel_crystal_shine() -> void:
+    _crystal_shine_mode = false
+    _crystal_shine_skill = null
 
 
 func _on_end_turn_pressed() -> void:

@@ -15,7 +15,12 @@ const COLORS := {
     enemy = Color(1.0, 0.15, 0.15, 1.0),
     friendly = Color(0.4, 1.0, 0.5, 1.0),
     move_range = Color(0.25, 0.45, 1.0, 0.85),
+    terrain_forest = Color(0.15, 0.5, 0.2, 0.35),
+    terrain_snow = Color(0.7, 0.8, 0.95, 0.35),
 }
+
+## 地形格子: {Vector2i: String}  cell → "forest" / "snow"
+var _terrain_cells: Dictionary = {}
 
 var _map_node: TileMapLayer = null
 
@@ -74,6 +79,11 @@ func set_move_range(cells: Array[Vector2i]) -> void:
     _move_range_cells = cells
     queue_redraw()
 
+## 设置地形格子 {Vector2i: terrain_type_string}
+func set_terrain_cells(data: Dictionary) -> void:
+    _terrain_cells = data
+    queue_redraw()
+
 func _get_cell_color(cell: Vector2i) -> Color:
     if cell == _current_cell:
         return COLORS.current
@@ -106,6 +116,12 @@ func _draw() -> void:
         move_set[cell] = true
 
     for cell in used_cells:
+        # 先画地形填充
+        if _terrain_cells.has(cell):
+            var tcolor: Color = COLORS.terrain_forest
+            match _terrain_cells[cell]:
+                "snow": tcolor = COLORS.terrain_snow
+            _draw_hex_fill(cell, tcolor)
         if move_set.has(cell):
             _draw_hex_fill(cell, COLORS.move_range)
         var color := _get_cell_color(cell)

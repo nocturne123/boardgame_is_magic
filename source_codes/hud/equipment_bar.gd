@@ -2,29 +2,32 @@ class_name EquipmentBar
 extends PanelContainer
 
 ## 装备栏 + 收藏品栏 HUD 组件。
-## 静态结构在 hud_battle.tscn 中定义，此脚本负责：
+## 3列2行网格布局：上排武器/防具/元素，下排收藏品×3。
+## 技能栏已移至外部（手牌区上方），通过 set_skill_tray() 注入引用。
+##
+## 职责：
 ## - 监听 player.equipment_changed 刷新显示（防抖）
 ## - 管理 DiscardZone（拖拽时滑入/滑出）
 ## - 响应装备槽拖拽，分发 ActionTree 调用
 ## - 处理 UnequipAction.unequip_blocked 信号
+## - 管理技能槽（外部 SkillTray 节点）
 
 const _DiscardZone = preload("res://source_codes/hud/discard_zone.gd")
 const _SkillSlot = preload("res://source_codes/hud/skill_slot.gd")
 
-@onready var _weapon_slot: EquipmentSlot   = $EquipHBox/WeaponSlot
-@onready var _armor_slot: EquipmentSlot    = $EquipHBox/ArmorSlot
-@onready var _element_slot: EquipmentSlot  = $EquipHBox/ElementSlot
-@onready var _collection_label: Label      = $EquipHBox/CollectionLabel
-@onready var _collection_slot0: EquipmentSlot = $EquipHBox/CollectionTray/CollectionSlot0
-@onready var _collection_slot1: EquipmentSlot = $EquipHBox/CollectionTray/CollectionSlot1
-@onready var _collection_slot2: EquipmentSlot = $EquipHBox/CollectionTray/CollectionSlot2
-@onready var _skill_tray: HBoxContainer    = $EquipHBox/SkillTray
+@onready var _weapon_slot: EquipmentSlot   = $EquipGrid/WeaponSlot
+@onready var _armor_slot: EquipmentSlot    = $EquipGrid/ArmorSlot
+@onready var _element_slot: EquipmentSlot  = $EquipGrid/ElementSlot
+@onready var _collection_slot0: EquipmentSlot = $EquipGrid/CollectionSlot0
+@onready var _collection_slot1: EquipmentSlot = $EquipGrid/CollectionSlot1
+@onready var _collection_slot2: EquipmentSlot = $EquipGrid/CollectionSlot2
 
 var _player: Player = null
 var _hud: Node = null                 ## HudBattle 引用
 var _discard_zone: DiscardZone = null
 var _refresh_pending: bool = false
 var _skill_slots: Array[SkillSlot] = []
+var _skill_tray: HBoxContainer = null  ## 外部注入，在手牌区上方
 
 
 # ---- 绑定/解绑 Player ----
@@ -46,6 +49,11 @@ func setup(p: Player, hud: Node) -> void:
     _ensure_discard_zone()
     _refresh_all()
     _refresh_skills()
+
+
+## 注入外部技能栏容器（由 HudBattle 调用）
+func set_skill_tray(tray: HBoxContainer) -> void:
+    _skill_tray = tray
 
 
 func _connect_slot_signals() -> void:
@@ -163,9 +171,6 @@ func _refresh_all() -> void:
 
 func _refresh_collection() -> void:
     var coll: Array = _player.get_equipment_in_slot(Player.EquipmentSlotType.Collection)
-    _collection_label.text = "★ 收藏品 (%d/3)" % coll.size()
-    _collection_label.visible = not coll.is_empty()
-
     var c_slots := [_collection_slot0, _collection_slot1, _collection_slot2]
     for i in range(3):
         c_slots[i].set_card(coll[i] if i < coll.size() else null)
@@ -221,13 +226,15 @@ func _get_or_create_action(action_name: String) -> Node:
     return node
 
 
-# ---- 技能栏管理 ----
+# ---- 技能栏管理（外部 SkillTray）----
 
 func _on_skill_added(_skill: SkillData) -> void:
     _refresh_skills()
 
+
 func _on_skill_removed(_skill: SkillData) -> void:
     _refresh_skills()
+
 
 func _refresh_skills() -> void:
     # 清理旧 SkillSlot
@@ -236,7 +243,7 @@ func _refresh_skills() -> void:
             slot.queue_free()
     _skill_slots.clear()
 
-    if _player == null:
+    if _player == null or _skill_tray == null:
         return
 
     # 为每个技能创建 SkillSlot
@@ -254,13 +261,16 @@ func _on_skill_hovered(skill: SkillData) -> void:
     if _hud and _hud.has_method("_show_skill_detail"):
         _hud._show_skill_detail(skill)
 
+
 func _on_skill_unhovered() -> void:
     if _hud and _hud.has_method("_clear_detail"):
         _hud._clear_detail()
 
+
 func _on_skill_clicked(skill: SkillData) -> void:
-    # 主动技能点击：未来由 HudBattle 处理触发
-    pass
+    # 主动技能点击：转发给 HudBattle 处理
+    if _hud and _hud.has_method("_on_skill_activated"):
+        _hud._on_skill_activated(skill)
 
 
 func _swap_equipment(a: EquipmentSlot, b: EquipmentSlot) -> void:

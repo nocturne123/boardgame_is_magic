@@ -9,7 +9,11 @@ var target: Player = null
 func take_action() -> void:
     if card == null:
         return
-
+    # ★ 雪地地形阻止恢复牌
+    if card.type == "Recovery":
+        var tm = player.get_meta("terrain_manager")
+        if tm and tm.has_method("is_recovery_blocked") and tm.is_recovery_blocked(player):
+            return
     card.execute(player, target, player.card_manager)
 
     player.remove_card_from_hand(card)

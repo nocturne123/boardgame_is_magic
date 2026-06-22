@@ -16,6 +16,8 @@
 [ext_resource type="Script" uid="uid://d8t5f2wxx0ne" path="res://source_codes/skills/skill_manager.gd" id="14_skillmgr"]
 [ext_resource type="Script" uid="uid://tg3n82x5l2b0" path="res://source_codes/event_system/event_manager.gd" id="15_eventmgr"]
 [ext_resource type="Script" uid="uid://6s6tm78kidgd" path="res://source_codes/event_system/event_deck.gd" id="16_eventdeck"]
+[ext_resource type="Script" path="res://source_codes/terrain/terrain_manager.gd" id="17_terrain"]
+[ext_resource type="Script" path="res://source_codes/hud/ui_splitter.gd" id="18_splitter"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_topbar"]
 content_margin_left = 12.0
@@ -88,6 +90,9 @@ script = ExtResource("15_eventmgr")
 [node name="EventDeck" type="Node" parent="logic" unique_id=426515669]
 script = ExtResource("16_eventdeck")
 
+[node name="TerrainManager" type="Node" parent="logic" unique_id=1700000001]
+script = ExtResource("17_terrain")
+
 [node name="MapLayer" type="CanvasLayer" parent="." unique_id=619093417]
 script = ExtResource("4_maplayer")
 metadata/_custom_type_script = "uid://84frhtknc1r2"
@@ -138,9 +143,10 @@ theme_override_constants/margin_bottom = 8
 [node name="MainVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin" unique_id=2100000003]
 clip_contents = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 
 [node name="TopBar" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000004]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_topbar")
 
@@ -181,10 +187,17 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "结束回合"
 
+[node name="VSplitter1" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox"]
+layout_mode = 2
+script = ExtResource("18_splitter")
+orientation = 0
+target_path = NodePath("../TopBar")
+target_is_before = true
+
 [node name="MiddleHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000012]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 
 [node name="LeftPanel" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=2100000013]
 custom_minimum_size = Vector2(220, 0)
@@ -192,21 +205,42 @@ layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("9_playerpanel")
 
+[node name="HSplitter1" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox"]
+layout_mode = 2
+script = ExtResource("18_splitter")
+orientation = 1
+target_path = NodePath("../LeftPanel")
+target_is_before = true
+
 [node name="MapSpacer" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=2100000014]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 1
 
+[node name="HSplitter2" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox"]
+layout_mode = 2
+script = ExtResource("18_splitter")
+orientation = 1
+target_path = NodePath("../RightVBox")
+target_is_before = false
+
 [node name="RightVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=2100000015]
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 
 [node name="CardDetailPanel" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox" unique_id=2100000016]
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
-size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBox_carddetail")
+
+[node name="VSplitter2" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox"]
+layout_mode = 2
+script = ExtResource("18_splitter")
+orientation = 0
+target_path = NodePath("../CardDetailPanel")
+target_is_before = true
 
 [node name="CardDetailVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/CardDetailPanel" unique_id=2100000017]
 layout_mode = 2
@@ -250,100 +284,93 @@ size_flags_vertical = 3
 
 [node name="LogLabel" type="RichTextLabel" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/LogPanel/LogVBox/LogScroll" unique_id=2100000025]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/default_color = Color(0.7, 0.65, 0.6, 1)
 theme_override_font_sizes/normal_font_size = 11
 bbcode_enabled = true
+fit_content = true
 scroll_following = true
 
-[node name="EquipmentBar" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000031]
+[node name="VSplitter3" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox"]
+layout_mode = 2
+script = ExtResource("18_splitter")
+orientation = 0
+target_path = NodePath("../BottomArea")
+target_is_before = false
+
+[node name="BottomArea" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000026]
+custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_bottom")
-script = ExtResource("12_equipbar")
 
-[node name="EquipHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar" unique_id=2100000032]
-layout_mode = 2
-theme_override_constants/separation = 6
-alignment = 1
-
-[node name="WeaponSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000033]
-layout_mode = 2
-script = ExtResource("13_equipslot")
-
-[node name="ArmorSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000034]
-layout_mode = 2
-script = ExtResource("13_equipslot")
-slot_type = 1
-
-[node name="ElementSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000035]
-layout_mode = 2
-script = ExtResource("13_equipslot")
-slot_type = 2
-
-[node name="EquipSpacer" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000036]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="CollectionLabel" type="Label" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000037]
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.65, 0.55, 1)
-theme_override_font_sizes/font_size = 12
-text = "★ 收藏品 (0/3)"
-
-[node name="CollectionTray" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000038]
+[node name="BottomVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="CollectionSlot0" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox/CollectionTray" unique_id=2100000039]
-custom_minimum_size = Vector2(80, 36)
+[node name="SkillRow" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox"]
 layout_mode = 2
-size_flags_horizontal = 3
-script = ExtResource("13_equipslot")
-slot_type = 3
-is_collection_slot = true
+alignment = 1
 
-[node name="CollectionSlot1" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox/CollectionTray" unique_id=2100000040]
-custom_minimum_size = Vector2(80, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-script = ExtResource("13_equipslot")
-slot_type = 3
-is_collection_slot = true
-
-[node name="CollectionSlot2" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox/CollectionTray" unique_id=2100000041]
-custom_minimum_size = Vector2(80, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-script = ExtResource("13_equipslot")
-slot_type = 3
-is_collection_slot = true
-
-[node name="SkillSeparator" type="VSeparator" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000042]
+[node name="SkillTray" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/SkillRow" unique_id=2100000043]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SkillTray" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/EquipmentBar/EquipHBox" unique_id=2100000043]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BottomArea" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000026]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBox_bottom")
-
-[node name="BottomHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea" unique_id=2100000027]
+[node name="BottomHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox" unique_id=2100000027]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="DrawPile" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox" unique_id=2100000028]
+[node name="DrawPile" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox" unique_id=2100000028]
 layout_mode = 2
 script = ExtResource("11_pilesprite")
 
-[node name="HandFan" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox" unique_id=2100000029]
+[node name="HandFan" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox" unique_id=2100000029]
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("10_handfan")
 
-[node name="DiscardPile" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomHBox" unique_id=2100000030]
+[node name="EquipmentBar" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox" unique_id=2100000031]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("12_equipbar")
+
+[node name="EquipGrid" type="GridContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar" unique_id=2100000032]
+layout_mode = 2
+theme_override_constants/separation = 4
+columns = 3
+
+[node name="WeaponSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar/EquipGrid" unique_id=2100000033]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+
+[node name="ArmorSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar/EquipGrid" unique_id=2100000034]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+slot_type = 1
+
+[node name="ElementSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar/EquipGrid" unique_id=2100000035]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+slot_type = 2
+
+[node name="CollectionSlot0" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar/EquipGrid" unique_id=2100000039]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+slot_type = 3
+is_collection_slot = true
+
+[node name="CollectionSlot1" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar/EquipGrid" unique_id=2100000040]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+slot_type = 3
+is_collection_slot = true
+
+[node name="CollectionSlot2" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar/EquipGrid" unique_id=2100000041]
+layout_mode = 2
+script = ExtResource("13_equipslot")
+slot_type = 3
+is_collection_slot = true
+
+[node name="DiscardPile" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox" unique_id=2100000030]
 layout_mode = 2
 script = ExtResource("11_pilesprite")

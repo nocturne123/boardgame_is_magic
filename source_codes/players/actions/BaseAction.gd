@@ -1,7 +1,5 @@
 class_name BaseAction extends Node
 
-signal action_info(message: String)
-
 var next_action = null
 var extra_function = null
 ## 设为 true 时暂停 chain，等 HUD 交互完成后调用 ActionTree.resume_chain() 恢复。
@@ -26,11 +24,8 @@ func trigger():
         #extra_function = null
     else :
         take_action()
-    # 向战斗日志输出执行信息
-    var info := _get_action_info()
-    if not info.is_empty():
-        action_info.emit(info)
 
 ## 由子类重写，返回本次 action 执行的中文描述。
+## 由 ActionTree 在 trigger() 后统一调用并发射 action_executed 信号。
 func _get_action_info() -> String:
     return ""

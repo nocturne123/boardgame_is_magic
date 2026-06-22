@@ -2,7 +2,8 @@ class_name LivingUpdate extends BaseAction
 
 ## 伤害链最后一环：根据当前 HP 判定存活状态。
 ## HP > 0：无操作（存活）。
-## HP <= 0 且有收藏品 → 晕厥（Fainted）：弃 1 个收藏品，恢复体力上限一半（向上取整），
+## HP <= 0 且有收藏品 → 晕厥（Fainted）：弃 1 个收藏品，
+##   通过恢复链（HealEntry → HealExecute → CrystalMarkTrigger）恢复体力上限一半，
 ##   设 immune_from_attack = true（到下回合开始前免伤）。
 ## HP <= 0 且无收藏品 → 淘汰（Dead）。
 var _living_result: String = ""
@@ -32,12 +33,15 @@ func take_action():
         if player.card_manager:
             player.card_manager.receive_into_discard(removed)
 
-    # 恢复体力上限一半（向上取整）
-    var heal_amount: int = ceili(player.max_health / 2.0)
-    player.health = heal_amount
-
     # 到下回合开始前免伤
     player.immune_from_attack = true
+
+    # 通过恢复链恢复体力：HealEntry → HealExecute → CrystalMarkTrigger
+    var heal_amount: int = ceili(player.max_health / 2.0)
+    var tree = player.get_node_or_null("ActionTree")
+    if tree and tree.get("heal_entry") != null:
+        tree.heal_entry.heal_amount = heal_amount
+        tree.chain_of_actions(tree.heal_entry)
 
 func reset_property():
     _living_result = ""

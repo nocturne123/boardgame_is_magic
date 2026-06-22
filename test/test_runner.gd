@@ -73,6 +73,7 @@ func _run_all_tests() -> void:
     _test_turn_manager_remove_player()
     _test_card_manager_extra_ops()
     _test_roll_dice()
+    _test_skills_all()
 
 
 # ============================================================
@@ -983,3 +984,398 @@ func _test_roll_dice() -> void:
 
     action.reset_property()
     _assert(action.get("dice_result") == 0, "reset_property 清零", "实际: %d" % action.get("dice_result"))
+
+
+# ============================================================
+# 21. 技能系统综合测试
+# ============================================================
+
+const SkillDataS = preload("res://source_codes/skills/skill_data.gd")
+const SkillManagerS = preload("res://source_codes/skills/skill_manager.gd")
+const EarthPonyStrengthS = preload("res://source_codes/skills/species/earth_pony_strength.gd")
+const UnicornMagicReachS = preload("res://source_codes/skills/species/unicorn_magic_reach.gd")
+const PegasusFreedomS = preload("res://source_codes/skills/species/pegasus_freedom.gd")
+const MaudProspectS = preload("res://source_codes/skills/character/maud_prospect.gd")
+const MaudCalmS = preload("res://source_codes/skills/character/maud_calm.gd")
+const SunburstCristallShineS = preload("res://source_codes/skills/character/sunburst_cristall_shine.gd")
+const CrystalShineExecuteS = preload("res://source_codes/skills/actions/crystal_shine_execute.gd")
+const CrystalMarkTriggerS = preload("res://source_codes/players/actions/CrystalMarkTrigger.gd")
+const StrengthRollExecuteS = preload("res://source_codes/skills/actions/strength_roll_execute.gd")
+const CalmRollExecuteS = preload("res://source_codes/skills/actions/calm_roll_execute.gd")
+const HealEntryS = preload("res://source_codes/players/actions/HealEntry.gd")
+const HealExecuteS = preload("res://source_codes/players/actions/HealExecute.gd")
+const TerrainManagerS = preload("res://source_codes/terrain/terrain_manager.gd")
+const ForestTerrainS = preload("res://source_codes/terrain/forest_terrain.gd")
+const SnowTerrainS = preload("res://source_codes/terrain/snow_terrain.gd")
+
+
+func _test_skills_all() -> void:
+    print("")
+    print("--- 21. 技能系统综合测试 ---")
+
+    _test_skill_data_base()
+    _test_skill_manager_load()
+    _test_earth_pony_strength()
+    _test_unicorn_magic_reach()
+    _test_pegasus_freedom()
+    _test_maud_calm()
+    _test_maud_prospect()
+    _test_sunburst_cristall_shine()
+    _test_heal_chain()
+    _test_terrain_system()
+
+
+# ---------- 21a. SkillData 基类 ----------
+
+func _test_skill_data_base() -> void:
+    print("")
+    print("  -- 21a. SkillData 基类 --")
+
+    var skill = SkillDataS.new()
+    skill.id = "test_skill"
+    skill.nice_name = "测试技能"
+    skill.description = "测试描述"
+    _assert(skill.id == "test_skill", "SkillData id 赋值", "实际: %s" % skill.id)
+    _assert(not skill.is_disabled(), "SkillData 默认未失效", "")
+    _assert(skill._inserted_nodes.is_empty(), "SkillData 初始无插入节点", "")
+
+    skill.set_disabled(true, null)
+    _assert(skill.is_disabled(), "set_disabled(true) 后已失效", "")
+    skill.set_disabled(false, null)
+    _assert(not skill.is_disabled(), "set_disabled(false) 后恢复", "")
+
+    # 重复 set_disabled 不触发
+    skill.set_disabled(false, null)
+    skill.set_disabled(true, null)
+    var calls_before = skill.is_disabled()
+    skill.set_disabled(true, null)  # 重复 true，应该幂等不触发 on_detach
+    _assert(skill.is_disabled() == calls_before, "重复 set_disabled(true) 幂等", "")
+
+
+# ---------- 21b. SkillManager 加载 ----------
+
+func _test_skill_manager_load() -> void:
+    print("")
+    print("  -- 21b. SkillManager 数据库加载 --")
+
+    var sm = SkillManagerS.new()
+    sm.load_database("res://source_codes/data/skill_database.json")
+
+    var ids = ["earth_pony_strength", "unicorn_magic_reach", "pegasus_freedom",
+               "maud_prospect", "maud_calm", "sunburst_cristall_shine"]
+    for sid in ids:
+        var template = sm.get_skill(sid)
+        _assert(template != null, "技能 '%s' 存在" % sid, "未找到")
+
+    var s = sm.create_skill("earth_pony_strength")
+    _assert(s != null, "create_skill 返回实例", "")
+    _assert(s.id == "earth_pony_strength", "create_skill id 正确", "实际: %s" % s.id)
+    _assert(s != sm.get_skill("earth_pony_strength"), "create_skill 返回独立实例", "")
+
+    var none = sm.create_skill("nonexistent")
+    _assert(none == null, "create_skill 不存在返回 null", "")
+
+    sm.free()
+
+
+# ---------- 21c. 蛮力（陆马种族技能） ----------
+
+func _test_earth_pony_strength() -> void:
+    print("")
+    print("  -- 21c. 蛮力（earth_pony_strength） --")
+
+    var skill = EarthPonyStrengthS.new()
+    _assert(skill.id == "earth_pony_strength", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Species, "category=Species", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Passive, "skill_type=Passive", "")
+    _assert(skill.enabled == true, "enabled 默认 true", "")
+
+    # 测试 StrengthRollExecute 掷骰
+    var exec = StrengthRollExecuteS.new()
+    exec.take_action()
+    var dice: int = exec.get("dice_result")
+    _assert(dice >= 1 and dice <= 6, "蛮力骰子 1-6", "实际: %d" % dice)
+
+    var bonus: int = exec.get("strength_bonus")
+    _assert(bonus == 0 or bonus == 1, "蛮力加成 0 或 1", "实际: %d" % bonus)
+    _assert((bonus == 1) == (dice >= 3), "蛮力加成与骰子结果一致", "dice=%d bonus=%d" % [dice, bonus])
+
+    # inform_next_action 传递 strength_bonus
+    var next = StrengthRollExecuteS.new()
+    exec.next_action = next
+    exec.inform_next_action()
+    _assert(next.get("strength_bonus") == bonus, "inform_next_action 传递 strength_bonus", "")
+
+    exec.reset_property()
+    _assert(exec.get("dice_result") == 0, "reset dice_result 清零", "")
+    _assert(exec.get("strength_bonus") == 0, "reset strength_bonus 清零", "")
+
+    exec.free()
+    next.free()
+    skill.free()
+
+
+# ---------- 21d. 魔法触及（独角兽种族技能） ----------
+
+func _test_unicorn_magic_reach() -> void:
+    print("")
+    print("  -- 21d. 魔法触及（unicorn_magic_reach） --")
+
+    var skill = UnicornMagicReachS.new()
+    _assert(skill.id == "unicorn_magic_reach", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Species, "category=Species", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Passive, "skill_type=Passive", "")
+
+    # 创建 Player 测试 on_attach / on_detach
+    var p = PlayerS.new()
+    skill.on_attach(p)
+    _assert(p.has_meta("attack_range_bonus"), "on_attach 设 meta attack_range_bonus", "")
+    _assert(p.get_meta("attack_range_bonus") == 1, "attack_range_bonus = 1", "实际: %s" % p.get_meta("attack_range_bonus"))
+
+    skill.on_detach(p)
+    _assert(not p.has_meta("attack_range_bonus"), "on_detach 移除 meta", "")
+
+    # 失效后 on_attach 不设 meta
+    skill.set_disabled(true, p)
+    skill.on_attach(p)
+    _assert(not p.has_meta("attack_range_bonus"), "失效时 on_attach 不设 meta", "")
+
+    p.free()
+    skill.free()
+
+
+# ---------- 21e. 自由翱翔（天马种族技能） ----------
+
+func _test_pegasus_freedom() -> void:
+    print("")
+    print("  -- 21e. 自由翱翔（pegasus_freedom） --")
+
+    var skill = PegasusFreedomS.new()
+    _assert(skill.id == "pegasus_freedom", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Species, "category=Species", "")
+
+    var p = PlayerS.new()
+    skill.on_attach(p)
+    # 默认免疫地形
+    _assert(p.has_meta("terrain_immune"), "on_attach 设 terrain_immune", "")
+    _assert(p.get_meta("terrain_immune") == true, "默认免疫=true", "实际: %s" % p.get_meta("terrain_immune"))
+
+    # 切换为受地形影响
+    skill.set_terrain_enabled(p, true)
+    _assert(p.get_meta("terrain_immune") == false, "set_terrain_enabled(true) → immune=false", "")
+    _assert(skill.is_terrain_enabled() == true, "is_terrain_enabled()=true", "")
+
+    # 切换回免疫
+    skill.set_terrain_enabled(p, false)
+    _assert(p.get_meta("terrain_immune") == true, "set_terrain_enabled(false) → immune=true", "")
+
+    # on_detach 移除 meta
+    skill.on_detach(p)
+    _assert(not p.has_meta("terrain_immune"), "on_detach 移除 terrain_immune", "")
+
+    p.free()
+    skill.free()
+
+
+# ---------- 21f. 冷静（灰琪角色技能） ----------
+
+func _test_maud_calm() -> void:
+    print("")
+    print("  -- 21f. 冷静（maud_calm） --")
+
+    var skill = MaudCalmS.new()
+    _assert(skill.id == "maud_calm", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Character, "category=Character", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Passive, "skill_type=Passive", "")
+
+    # CalmRollExecute 需要在 ActionTree 中才能 _find_roll_entry
+    # 这里仅测试 reset 和属性，不测试 take_action（需要完整树）
+    var exec = CalmRollExecuteS.new()
+    _assert(exec.get("roll1") == 0, "CalmRollExecute roll1 初始 0", "")
+    _assert(exec.get("roll2") == 0, "CalmRollExecute roll2 初始 0", "")
+    _assert(exec.get("chosen") == 0, "CalmRollExecute chosen 初始 0", "")
+
+    # 手动设 roll1/roll2/chosen 验证属性读写
+    exec.set("roll1", 3)
+    exec.set("roll2", 5)
+    exec.set("chosen", 3)
+    _assert(exec.get("roll1") == 3, "CalmRollExecute roll1 赋值", "")
+    _assert(exec.get("roll2") == 5, "CalmRollExecute roll2 赋值", "")
+    _assert(exec.get("chosen") == 3, "CalmRollExecute chosen 赋值", "")
+
+    exec.reset_property()
+    _assert(exec.get("roll1") == 0, "reset roll1 清零", "")
+    _assert(exec.get("roll2") == 0, "reset roll2 清零", "")
+    _assert(exec.get("chosen") == 0, "reset chosen 清零", "")
+
+    exec.free()
+    skill.free()
+
+
+# ---------- 21g. 勘探（灰琪角色技能） ----------
+
+func _test_maud_prospect() -> void:
+    print("")
+    print("  -- 21g. 勘探（maud_prospect） --")
+
+    var skill = MaudProspectS.new()
+    _assert(skill.id == "maud_prospect", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Character, "category=Character", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Active, "skill_type=Active", "")
+    _assert(skill.max_uses_per_turn == 1, "max_uses_per_turn=1", "实际: %d" % skill.max_uses_per_turn)
+
+    # ProspectEntry 入口
+    var entry_script = load("res://source_codes/skills/actions/prospect_entry.gd")
+    var entry = entry_script.new()
+    entry.set("prospect_activated", true)
+    _assert(entry.get("prospect_activated") == true, "ProspectEntry prospect_activated 赋值", "")
+    entry.reset_property()
+    _assert(entry.get("prospect_activated") == false, "ProspectEntry reset 清零", "")
+
+    # ProspectEffect 基本不崩溃
+    var effect_script = load("res://source_codes/skills/actions/prospect_effect.gd")
+    var effect = effect_script.new()
+    effect.take_action()  # 无 player 应不崩溃
+    _assert(true, "ProspectEffect 无 player 不崩溃", "")
+
+    entry.free()
+    effect.free()
+    skill.free()
+
+
+# ---------- 21h. 水晶洗礼（日光耀耀角色技能） ----------
+
+func _test_sunburst_cristall_shine() -> void:
+    print("")
+    print("  -- 21h. 水晶洗礼（sunburst_cristall_shine） --")
+
+    var skill = SunburstCristallShineS.new()
+    _assert(skill.id == "sunburst_cristall_shine", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Character, "category=Character", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Active, "skill_type=Active", "")
+    _assert(skill.needs_target == true, "needs_target=true", "")
+    _assert(skill.ignore_distance == true, "ignore_distance=true", "")
+
+    # 创建两个 Player 模拟施放者和目标
+    var caster = PlayerS.new()
+    var target = PlayerS.new()
+
+    # add_mark
+    skill.add_mark(target)
+    _assert(target.has_meta("crystal_marks"), "add_mark 设 meta crystal_marks", "")
+    _assert(target.get_meta("crystal_marks") == 1, "首次 add_mark count=1", "实际: %s" % target.get_meta("crystal_marks"))
+
+    skill.add_mark(target)
+    _assert(target.get_meta("crystal_marks") == 2, "二次 add_mark count=2", "实际: %s" % target.get_meta("crystal_marks"))
+
+    # CrystalShineExecute 基本逻辑
+    var exec = CrystalShineExecuteS.new()
+    exec.player = caster
+    exec.target = target
+    exec.skill = skill
+    # 不设 card_to_discard → take_action 不崩溃
+    exec.take_action()
+    _assert(true, "CrystalShineExecute 无卡牌不崩溃", "")
+
+    # clear_all_marks 清除印记
+    skill.clear_all_marks()
+    _assert(not target.has_meta("crystal_marks"), "clear_all_marks 清除 meta", "")
+
+    # on_detach 也清除印记
+    skill.add_mark(target)
+    skill.on_detach(caster)
+    _assert(not target.has_meta("crystal_marks"), "on_detach 清除印记", "")
+
+    caster.free()
+    target.free()
+    skill.free()
+
+
+# ---------- 21i. 恢复链 HealEntry → HealExecute ----------
+
+func _test_heal_chain() -> void:
+    print("")
+    print("  -- 21i. 恢复链 HealEntry → HealExecute --")
+
+    var entry = HealEntryS.new()
+    var exec = HealExecuteS.new()
+    entry.next_action = exec
+
+    # HealEntry 传递 heal_amount
+    entry.heal_amount = 5
+    entry.inform_next_action()
+    _assert(exec.get("heal_amount") == 5, "HealEntry → HealExecute 传 heal_amount", "实际: %s" % exec.get("heal_amount"))
+
+    # HealExecute 修改 player.health
+    var p = PlayerS.new()
+    p.health = 5
+    p.max_health = 20
+    exec.player = p
+    exec.take_action()
+    _assert(p.health == 10, "HealExecute 加血 5+5=10", "实际: %d" % p.health)
+
+    # 不超过 max_health
+    p.health = 18
+    exec.heal_amount = 10
+    exec._actual_healed = 0
+    exec.take_action()
+    _assert(p.health == 20, "HealExecute 不超过 max_health", "实际: %d" % p.health)
+    _assert(exec.get("_actual_healed") == 2, "实际恢复量=2", "实际: %s" % exec.get("_actual_healed"))
+
+    # reset
+    entry.reset_property()
+    _assert(entry.get("heal_amount") == 0, "HealEntry reset", "")
+    exec.reset_property()
+    _assert(exec.get("heal_amount") == 0, "HealExecute reset", "")
+
+    p.free()
+    entry.free()
+    exec.free()
+
+
+# ---------- 21j. 地形系统 ----------
+
+func _test_terrain_system() -> void:
+    print("")
+    print("  -- 21j. 地形系统 --")
+
+    var tm = TerrainManagerS.new()
+
+    # 注册地形
+    var forest = ForestTerrainS.new()
+    var snow = SnowTerrainS.new()
+    tm.add_terrain(Vector2i(1, 0), forest)
+    tm.add_terrain(Vector2i(2, 0), snow)
+
+    _assert(tm.has_terrain(Vector2i(1, 0)), "森林地形已注册", "")
+    _assert(tm.has_terrain(Vector2i(2, 0)), "雪地地形已注册", "")
+    _assert(not tm.has_terrain(Vector2i(9, 9)), "无地形格子查询 false", "")
+
+    # 玩家进入森林
+    var p = PlayerS.new()
+    tm.on_player_moved(p, Vector2i(1, 0))
+    _assert(p.has_meta("terrain_attack_range_mod"), "进入森林设 attack_range_mod", "")
+    _assert(p.get_meta("terrain_attack_range_mod") == -1, "森林 attack_range_mod=-1", "实际: %s" % p.get_meta("terrain_attack_range_mod"))
+
+    # 离开森林 → 进入雪地
+    tm.on_player_moved(p, Vector2i(2, 0))
+    _assert(not p.has_meta("terrain_attack_range_mod"), "离开森林移除 attack_range_mod", "")
+    _assert(p.has_meta("terrain_blocks_recovery"), "进入雪地设 blocks_recovery", "")
+
+    # is_recovery_blocked
+    _assert(tm.is_recovery_blocked(p) == true, "雪地阻止恢复牌", "")
+
+    # 离开雪地 → 空地
+    tm.on_player_moved(p, Vector2i(3, 0))
+    _assert(not p.has_meta("terrain_blocks_recovery"), "离开雪地移除 blocks_recovery", "")
+    _assert(tm.is_recovery_blocked(p) == false, "空地不阻止恢复", "")
+
+    # 天马免疫
+    var pegasus = PlayerS.new()
+    pegasus.set_meta("terrain_immune", true)
+    tm.on_player_moved(pegasus, Vector2i(1, 0))
+    _assert(not pegasus.has_meta("terrain_attack_range_mod"), "天马免疫森林效果", "")
+
+    p.free()
+    pegasus.free()
+    tm.free()

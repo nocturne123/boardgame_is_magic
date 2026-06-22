@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://source_codes/players/actions/RollDiceExecute.gd" id="13_rollexecute"]
 [ext_resource type="Script" path="res://source_codes/players/actions/EventTriggerPhase.gd" id="15_eventphase"]
 [ext_resource type="Script" path="res://source_codes/players/actions/MoveAction.gd" id="14_move"]
+[ext_resource type="Script" path="res://source_codes/players/actions/HealEntry.gd" id="15_healentry"]
+[ext_resource type="Script" path="res://source_codes/players/actions/HealExecute.gd" id="16_healexecute"]
 
 [node name="PLayer" type="Sprite2D" unique_id=1215331566]
 texture_filter = 1
@@ -59,3 +61,9 @@ script = ExtResource("13_rollexecute")
 
 [node name="MoveAction" type="Node" parent="ActionTree" unique_id=2965812345]
 script = ExtResource("14_move")
+
+[node name="HealEntry" type="Node" parent="ActionTree"]
+script = ExtResource("15_healentry")
+
+[node name="HealExecute" type="Node" parent="ActionTree"]
+script = ExtResource("16_healexecute")

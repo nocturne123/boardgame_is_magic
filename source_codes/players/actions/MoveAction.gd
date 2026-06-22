@@ -7,6 +7,10 @@ func take_action() -> void:
         return
     player.move_to_position(target_cell)
     player.move_chance_in_turn -= 1
+    # ★ 地形触发：通知 TerrainManager
+    var tm = player.get_meta("terrain_manager")
+    if tm and tm.has_method("on_player_moved"):
+        tm.on_player_moved(player, target_cell)
 
 func reset_property() -> void:
     target_cell = Vector2i.ZERO

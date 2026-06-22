@@ -17,7 +17,7 @@ const CARD_STEP: float = 60.0
 const MAX_FAN_DEG: float = 14.0
 
 # ---- 交互参数 ----
-const HOVER_LIFT: float = 40.0        ## 悬停时向上弹起像素
+const HOVER_LIFT: float = 20.0        ## 悬停时向上弹起像素
 const HOVER_SCALE: float = 1.16       ## 悬停时缩放倍率
 const ELEVATED_Z: int = 100
 
@@ -102,7 +102,7 @@ func _notification(what: int) -> void:
 func _try_layout() -> void:
     var count := _cards.size()
     if count == 0:
-        custom_minimum_size = Vector2(_card_w, _card_h + HOVER_LIFT + 12)
+        custom_minimum_size = Vector2(_card_w, _card_h + HOVER_LIFT + 4)
         return
 
     var avail: float = size.x
@@ -129,7 +129,7 @@ func _try_layout() -> void:
     # 给容器设最小尺寸：宽度为扇形总宽 + 牌宽（含旋转溢出），高度留 hover lift 空间
     custom_minimum_size = Vector2(
         fan_span + _card_w + 20,
-        _card_h + HOVER_LIFT + 12
+        _card_h + HOVER_LIFT + 4
     )
 
 

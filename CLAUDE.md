@@ -309,7 +309,12 @@ Each Player scene has an `ActionTree` node. `chain_of_actions(begin)` walks: `tr
 Default chains:
 - `TurnStart → DrawCard → EventTriggerPhase` — triggered by TurnManager on turn start
 - `ReceiveDamage → DecreaseHealth → LivingUpdate` — damage processing chain
+- `HealEntry → HealExecute` — 恢复链（默认到此结束，技能可动态插入后续节点）
 - `RollDiceEntry → RollDiceExecute` — 掷骰链（按需触发）
+
+**ActionTree 信号**:
+- `chain_paused(action)` — action 设 waiting=true 暂停时发射
+- `action_executed(message)` — 每个 action trigger 后调 _get_action_info()，非空则发射（HudBattle 连接一次即可，替代旧的逐节点连接）
 
 Active actions:
 
@@ -320,7 +325,7 @@ Active actions:
 | `UseEffect` | UseCard 分发 | `execute()` → 手牌移除 → 去向 |
 | `UseBaseplay` | UseCard 分发 | `execute()` → `resolve()` fallback（Attack → Damage 链，含蛮力/事件伤害修正）→ 手牌移除 → 去向 → 攻击次数递减 |
 | `UseEventCard` | UseCard 分发 (type=="Event") | 打出事件手牌（魔法对决）。不消耗 attack_chance。用完进事件弃牌堆 |
-| `MoveAction` | HudBattle 移动模式 | 设 `map_position`，递减 `move_chance_in_turn` |
+| `MoveAction` | HudBattle 移动模式 | 设 `map_position`，递减 `move_chance_in_turn`。**钩入地形系统**：通知 TerrainManager.on_player_moved |
 | `DrawCard` | HudBattle 点击抽牌堆 / TurnStart 链 | 抽牌到手牌。**抽到事件触发牌直接打出**（进弃牌堆 → 触发事件 → 事件后抽牌，递归级联） |
 | `EventTriggerPhase` | TurnStart 链（DrawCard 之后） | 循环检查手牌中的事件触发牌（来自初始手牌），依次打出。事件后抽牌调 `DrawCard._draw_one_card()` |
 | `DiscardCard` | — | 从手牌弃入弃牌堆 |
@@ -329,6 +334,10 @@ Active actions:
 | `UnequipAction` | 装备栏拖拽到 DiscardZone | 主动卸下非收藏品装备 → 弃牌堆（收藏品拒绝 → `unequip_blocked` 信号） |
 | `MoveEquipmentToCollection` | 装备栏拖拽 | 收藏品从装备栏移到 Collection 槽位。按 `card_identity` 查找指定收藏品 |
 | `EquipFromCollection` | 收藏品拖拽 | Weapon/Armor 收藏品从 Collection 移回装备栏。按 `card_identity` 查找 + 类型安全检查 |
+| `HealEntry` | 恢复链入口 | 接收 `heal_amount`，通过 `inform_next_action` 传递给 HealExecute |
+| `HealExecute` | 恢复链生效 | 修改 player.health（不超 max_health），记录实际恢复量传给下游 |
+| `CrystalMarkTrigger` | 水晶洗礼动态插入 | 恢复链最后一环：检查 meta `crystal_marks`，有则移除后造成等量真实伤害链 |
+| `CrystalShineExecute` | 水晶洗礼主动使用 | 弃置一张手牌 + 调用 skill.add_mark(target)。由 HudBattle 在点技能→选目标后触发 |
 
 `UseCard` 的四个子节点（UseEquipment / UseEffect / UseBaseplay / UseEventCard）由 `UseCard._ready()` 动态创建。其他动作节点若场景中不存在，由 `EquipmentBar._send_action()` / `EquipmentBar._get_or_create_action()` 动态加载脚本创建。
 
@@ -348,13 +357,16 @@ Active actions:
 - `on_attach` 时插入 action 节点到链条中，`on_detach` 时恢复默认链条
 - 需要玩家交互的 action 节点设 `waiting = true` 暂停 chain，HudBattle 通过 `chain_paused` 信号响应
 
-**三个已实现的技能**:
+**六个已实现的技能**:
 
 | 技能 | 类型 | 来源 | 链条修改方式 |
 |------|------|------|-------------|
 | 蛮力 | 被动（开关） | EarthPony 种族 | 在 UseCard→UseBaseplay 之间插入 StrengthRollEntry→StrengthRollExecute。默认开启，关闭后跳过掷骰 |
+| 魔法触及 | 被动 | Unicorn 种族 | on_attach 设 meta "attack_range_bonus"=1（攻击距离+1），on_detach 移除 |
+| 自由翱翔 | 被动（开关） | Pegasus 种族 | on_attach 设 meta "terrain_immune"=true。点击技能槽切换地形免疫开关 |
 | 勘探 | 主动 | 灰琪角色 | 在 TurnStart→DrawCard 之间插入 ProspectEntry（暂停等 HUD 问是否使用），DrawCard 之后插入 ProspectEffect |
 | 冷静 | 被动 | 灰琪角色 | 替换 RollDiceExecute 为 CalmRollExecute（掷两次，暂停等 HUD 让玩家选，陆马种族判定不生效） |
+| 水晶洗礼 | 主动 | 日光耀耀角色 | 弃手牌对目标 add_mark。首次标记时在目标 ActionTree 上动态插入 CrystalMarkTrigger 到 HealExecute 之后。技能失效/on_detach 时恢复链条+清除所有印记 |
 
 **SkillManager** (`skills/skill_manager.gd`) — 节点，放在 `logic` 下:
 - 加载 `skill_database.json`
@@ -468,6 +480,35 @@ Active actions:
 - **R7**: 持续效果用 pull 模型（UseBaseplay/TurnStart 查询 EventManager），不用回调钩子
 - **R12**: 初始化不走 ActionTree，EventTriggerPhase 处理初始手牌中的事件触发牌
 
+### Terrain System (`terrain/`)
+
+地形效果通过 pull 模型实现。MoveAction 进入/离开格子时通知 TerrainManager，TurnStart 检查回合开始效果。
+
+**TerrainEffect** (`terrain/terrain_effect.gd`) — 基类 Resource:
+- `terrain_name: String`
+- `on_enter(player)` / `on_exit(player)` / `on_turn_start(player)` / `on_turn_end(player)` — 子类重写
+
+**TerrainManager** (`terrain/terrain_manager.gd`) — 节点，放在 `logic` 下:
+- `add_terrain(cell, effect)` — 注册地形
+- `on_player_moved(player, new_cell)` — 离开旧地形 + 进入新地形
+- `on_turn_start(player)` — 回合开始效果
+- `is_recovery_blocked(player)` / `get_attack_range_mod(player)` — 查询地形影响
+- 天马免疫：检查 meta `terrain_immune`，跳过所有效果
+
+**两个地形**:
+
+| 地形 | 文件 | 效果 | 实现 |
+|------|------|------|------|
+| 森林 | `forest_terrain.gd` | 攻击距离 -1 | on_enter 设 meta `terrain_attack_range_mod`=-1 |
+| 雪地 | `snow_terrain.gd` | 不能使用恢复牌 | on_enter 设 meta `terrain_blocks_recovery`=true |
+
+**初始化**: HudBattle._setup_terrain() 在地图上放两个地形（森林: cube(1,0,-1)，雪地: cube(-1,0,1)），注入 `terrain_manager` meta 到每个 Player，tile_hud 渲染地形颜色（深绿 / 浅蓝半透明填充）。
+
+**钩子位置**:
+- MoveAction.take_action() → TerrainManager.on_player_moved
+- TurnStart.take_action() → TerrainManager.on_turn_start
+- UseEffect.take_action() → 检查 is_recovery_blocked（雪地阻止 Recovery 牌）
+
 ### Save Manager (`save_manager.gd`)
 
 Autoload singleton. `store_var`/`get_var` to `user://savegame.save`.
@@ -488,48 +529,47 @@ Autoload singleton. `store_var`/`get_var` to `user://savegame.save`.
 UI 布局在 `hud_battle.tscn` 场景中。`HudLayer` 下的节点树：
 
 ```
-HudLayer/HudContainer/Margin/MainVBox
+HudLayer/HudContainer/Margin/MainVBox (sep=0)
   ├── TopBar — 轮次/回合/当前玩家 / 移动指示器 / 结束按钮
-  ├── MiddleHBox
+  ├── VSplitter1 ← 拖拽改变 TopBar 高度
+  ├── MiddleHBox (sep=0, 垂直拉伸)
   │   ├── LeftPanel (PlayerInfoPanel)
+  │   ├── HSplitter1 ← 拖拽改变 LeftPanel 宽度
   │   ├── MapSpacer (鼠标穿透透明区)
-  │   └── RightVBox
+  │   ├── HSplitter2 ← 拖拽改变 RightVBox 宽度
+  │   └── RightVBox (sep=0)
   │       ├── CardDetailPanel → CardDetailLabel (卡牌/技能详情)
+  │       ├── VSplitter2 ← 拖拽改变 CardDetailPanel 高度
   │       └── LogPanel → LogScroll → LogLabel
-  ├── EquipmentBar (PanelContainer, script=equipment_bar.gd)
-  │   └── EquipHBox
-  │       ├── WeaponSlot  (EquipmentSlot, slot_type=Weapon)
-  │       ├── ArmorSlot   (EquipmentSlot, slot_type=Armor)
-  │       ├── ElementSlot (EquipmentSlot, slot_type=Element)
-  │       ├── EquipSpacer (expand)
-  │       ├── CollectionLabel ("★ 收藏品 (n/3)")
-  │       ├── CollectionTray
-  │       │   ├── CollectionSlot0 (EquipmentSlot, slot_type=Collection, is_collection_slot=true)
-  │       │   ├── CollectionSlot1
-  │       │   └── CollectionSlot2
-  │       ├── SkillSeparator (VSeparator)
-  │       └── SkillTray (HBoxContainer, 动态 SkillSlot 子节点)
+  ├── VSplitter3 ← 拖拽改变 BottomArea 高度
   └── BottomArea
-      └── BottomHBox
-          ├── DrawPile (CardPileSprite)
-          ├── HandFan (手牌扇形区)
-          └── DiscardPile (CardPileSprite)
+      └── BottomVBox (sep=4)
+          ├── SkillRow → SkillTray (技能栏，在手牌上方)
+          └── BottomHBox (居中)
+              ├── DrawPile (CardPileSprite)
+              ├── HandFan (手牌扇形区, 弹性)
+              ├── EquipmentBar → EquipGrid (3列2行)
+              │   ├── 上排: WeaponSlot | ArmorSlot | ElementSlot
+              │   └── 下排: CollectionSlot0 | CollectionSlot1 | CollectionSlot2
+              └── DiscardPile (CardPileSprite)
 ```
 
 动态元素（代码创建）：
 - `CardArrow` — 卡牌指向箭头
-- `TilemapHUD` — 六边形描边叠加层
+- `TilemapHUD` — 六边形描边叠加层 + 地形颜色渲染
 - HandFan 内卡牌 — 通过 `hand_fan.add_card()` 动态增删
 - SkillTray 内 SkillSlot — 通过 `equipment_bar._refresh_skills()` 动态增删
 - DiscardZone — 拖拽装备时滑入/滑出的弃置区
+- CrystalMarkTrigger — 水晶洗礼技能在目标 ActionTree 上动态创建/移除
+- UISplitter — 6 个可拖拽分割条（3 个 VSplitter + 2 个 HSplitter + 1 个 CardDetail/Log 之间的 VSplitter）
 
 ### Equipment Bar (`equipment_bar.gd` + `equipment_slot.gd`)
 
-装备栏 + 收藏品栏 + **技能栏**的 HUD 组件，支持拖拽互移。
+装备栏 + 收藏品栏的 HUD 组件，现在为紧凑的 3×2 网格布局。技能栏已分离到 BottomArea 顶部。
 
-- **EquipmentBar**: PanelContainer，监听 `Player.equipment_changed` + `Player.skill_added` + `Player.skill_removed` 信号自动刷新。`setup(player, hud)` 绑定当前玩家。
-- **EquipmentSlot**: 单个槽位。`@export slot_type` + `@export is_collection_slot`。Godot 原生拖拽。
-- **SkillSlot** (`skill_slot.gd`): 圆形技能槽（56×56），`_draw()` 渲染。主动技能=实线描边，被动技能=虚线描边。失效状态=半透明（alpha 0.35）。类别颜色：种族=绿、角色=金、装备=紫。悬停发射 `skill_hovered` → HudBattle 显示技能描述。
+- **EquipmentBar**: PanelContainer，监听 `Player.equipment_changed` + `Player.skill_added` + `Player.skill_removed` 信号自动刷新。`setup(player, hud)` 绑定当前玩家。`set_skill_tray(tray)` 注入外部技能栏容器。DiscardZone 拖拽管理。
+- **EquipmentSlot**: 紧凑方框（60×56），名称居中显示。`@export slot_type` + `@export is_collection_slot`。Godot 原生拖拽。后续可替换为小图标。
+- **SkillSlot** (`skill_slot.gd`): 圆形技能槽（56×56），放在 BottomVBox/SkillRow/SkillTray 中（而非 EquipmentBar 内）。EquipmentBar 通过外部注入的 `_skill_tray` 引用管理技能槽的增删刷。
 - **拖拽规则**：装备→收藏品（仅收藏品）触发 `MoveEquipmentToCollection`；收藏品→装备（仅 Weapon/Armor 类型匹配）触发 `EquipFromCollection`；装备→DiscardZone 触发 `UnequipAction`。
 - **EquipmentSlot export 属性必须在 tscn 中显式设置**：ArmorSlot `slot_type=1`，ElementSlot `slot_type=2`，CollectionSlot0-2 `slot_type=3, is_collection_slot=true`。WeaponSlot 默认值已正确（slot_type=0）。
 - `_on_slot_drop` 传递 `card: CardData`，Action 按 `card_identity` 查找指定收藏品（不再取第一个）。
@@ -558,7 +598,7 @@ Full rulebook v4.1 in Chinese. Covers: win conditions, turn phases, terrain effe
 
 ### Tests (`test/`)
 
-91 tests across 13 categories. Run: `../Godot_v4.6.3-stable_win64.exe --headless --path . test/test_runner.tscn`
+212 tests across 21 categories. Run: `../Godot_v4.6.3-stable_win64.exe --headless --path . test/test_runner.tscn`
 
 Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_test_*()` methods, `_assert(condition, name, detail)`.
 
@@ -575,9 +615,10 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 | `card_database.json` | 51 张 Effect 牌 + 10 张 Recovery 牌 | 占位空壳，无实际 execute/resolve 逻辑 |
 | `normal_drawpile.json` | 仅 19 张（含 3 张事件触发牌） | 规则要求 148 张摸牌堆，需扩充 |
 | `EquipmentBar._swap_equipment` | 同类型拖拽交换占位 | 场景中每种槽只有 1 个，此路径暂不可达 |
-| 攻击距离校验 | 未实现 | BaseWeapon.attack_range 存在但 UseCard 不检查 |
+| 攻击距离校验 | 未实现 | BaseWeapon.attack_range 存在但 UseCard 不检查。unicorn_magic_reach 技能提供了 attack_range_bonus meta |
 | 事件系统 HUD | 未实现 | 事件牌堆/弃牌堆 sprite、全局效果面板 UI |
-| `_update_player_info()` | 死代码 | 定义了但 _update_all_ui() 不调用 |
+| 天马角色 | 未实装 | pegasus_freedom 技能已就绪，character_database 中暂无天马角色 |
+| Recovery 牌实现 | 空壳 | 10 张 Recovery 牌的 execute/resolve 为占位 |
 
 ---
 

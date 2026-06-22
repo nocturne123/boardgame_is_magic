@@ -23,9 +23,9 @@
     "species": "Unicorn",
     "max_health": 13,
     "speed": 1,
-    "physical_ability": 1,
+    "physical_ability": 2,
     "magic_ability": 2,
-    "mental_ability": 2,
+    "mental_ability": 1,
     "physical_defence": 0,
     "magic_defence": 0,
     "mental_defence": 0,
@@ -33,8 +33,8 @@
     "attack_chance": 1,
     "draw_stage_card_number": 2,
     "start_game_draw": 4,
-    "collection_item_ids": [],
-    "character_skill_ids": [],
-    "species_skill_ids": []
+    "collection_item_ids": ["魔法书", "眼镜", "衣服"],
+    "character_skill_ids": ["sunburst_cristall_shine"],
+    "species_skill_ids": ["unicorn_magic_reach"]
   }
 ]
