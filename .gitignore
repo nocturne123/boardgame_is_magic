@@ -2,6 +2,7 @@
 .godot/
 *.import
 *.tmp
+*.translation
 
 # User data
 user/
@@ -13,3 +14,16 @@ export/
 .vscode/
 .idea/
 .hermes/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor backup
+*~
+*.swp
+*.swo
+*.orig
+
+# Downloaded archives (addon is extracted)
+addons/*.zip
