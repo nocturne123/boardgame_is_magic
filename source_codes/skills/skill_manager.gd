@@ -12,6 +12,15 @@ func _ready() -> void:
 
 func load_database(path: String) -> void:
     _skill_templates.clear()
+    _load_single_database(path)
+
+## 从多个 JSON 文件加载技能并合并。不清除已有模板，允许多次调用追加。
+func load_databases(paths: Array[String]) -> void:
+    for path in paths:
+        _load_single_database(path)
+
+## 从单个文件加载技能（不清理 _skill_templates，由 load_database/load_databases 管理清理逻辑）。
+func _load_single_database(path: String) -> void:
     var file := FileAccess.open(path, FileAccess.READ)
     if file == null:
         push_error("SkillManager: 无法打开技能库: %s" % path)
@@ -19,7 +28,7 @@ func load_database(path: String) -> void:
     var text := file.get_as_text()
     var parsed = JSON.parse_string(text)
     if not parsed is Array:
-        push_error("SkillManager: 技能库格式错误")
+        push_error("SkillManager: 技能库格式错误: %s" % path)
         return
     for entry in parsed:
         var skill := _create_skill_from_json(entry)

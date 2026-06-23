@@ -11,7 +11,7 @@ func _get_plugin_name():
 
 
 func _get_plugin_icon():
-	return preload("uid://chl4qyjdth4vj")
+	return preload("hexagon_tilemaplayer.svg")
 
 
 func _enter_tree():
@@ -19,7 +19,7 @@ func _enter_tree():
 		"HexagonTileMapLayer",
 		"TileMapLayer",
 		preload("hexagon_tilemaplayer.gd"),
-		preload("uid://chl4qyjdth4vj")
+		preload("hexagon_tilemaplayer.svg")
 	)
 	selection = EditorInterface.get_selection()
 	selection.selection_changed.connect(_on_selection_changed)

@@ -180,8 +180,15 @@ func _test_card_manager_init() -> void:
     print("--- 3. CardManager 初始化 ---")
 
     var cm := CardManagerS.new()
-    cm.json_card_database_path = "res://source_codes/data/card_database.json"
-    cm.json_card_collection_path = "res://source_codes/data/normal_drawpile.json"
+    cm._normal_paths = [
+        "res://source_codes/data/normalcard/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon_database.json",
+        "res://source_codes/data/normalcard/armor_database.json",
+        "res://source_codes/data/normalcard/element_database.json",
+        "res://source_codes/data/normalcard/effect_database.json",
+        "res://source_codes/data/normalcard/recovery_database.json",
+    ]
+    cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
 
     _assert(cm.card_database.size() > 0, "卡牌数据库非空", "size=%d" % cm.card_database.size())
@@ -227,8 +234,15 @@ func _test_card_manager_create_card() -> void:
     print("--- 4. CardManager 创建卡牌 ---")
 
     var cm := CardManagerS.new()
-    cm.json_card_database_path = "res://source_codes/data/card_database.json"
-    cm.json_card_collection_path = "res://source_codes/data/normal_drawpile.json"
+    cm._normal_paths = [
+        "res://source_codes/data/normalcard/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon_database.json",
+        "res://source_codes/data/normalcard/armor_database.json",
+        "res://source_codes/data/normalcard/element_database.json",
+        "res://source_codes/data/normalcard/effect_database.json",
+        "res://source_codes/data/normalcard/recovery_database.json",
+    ]
+    cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
     cm.reset()
 
@@ -358,8 +372,15 @@ func _test_player_hand() -> void:
     print("  [NOTE] 使用手动构建的 CardData 资源测试手牌操作方法")
 
     var cm := CardManagerS.new()
-    cm.json_card_database_path = "res://source_codes/data/card_database.json"
-    cm.json_card_collection_path = "res://source_codes/data/normal_drawpile.json"
+    cm._normal_paths = [
+        "res://source_codes/data/normalcard/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon_database.json",
+        "res://source_codes/data/normalcard/armor_database.json",
+        "res://source_codes/data/normalcard/element_database.json",
+        "res://source_codes/data/normalcard/effect_database.json",
+        "res://source_codes/data/normalcard/recovery_database.json",
+    ]
+    cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
     cm.reset()
 
@@ -527,8 +548,15 @@ func _test_use_card_action() -> void:
     print("--- 11. UseCard Action 链 ---")
 
     var cm := CardManagerS.new()
-    cm.json_card_database_path = "res://source_codes/data/card_database.json"
-    cm.json_card_collection_path = "res://source_codes/data/normal_drawpile.json"
+    cm._normal_paths = [
+        "res://source_codes/data/normalcard/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon_database.json",
+        "res://source_codes/data/normalcard/armor_database.json",
+        "res://source_codes/data/normalcard/element_database.json",
+        "res://source_codes/data/normalcard/effect_database.json",
+        "res://source_codes/data/normalcard/recovery_database.json",
+    ]
+    cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
     cm.reset()
 
@@ -916,8 +944,15 @@ func _test_card_manager_extra_ops() -> void:
     print("--- 19. CardManager 额外操作 ---")
 
     var cm := CardManagerS.new()
-    cm.json_card_database_path = "res://source_codes/data/card_database.json"
-    cm.json_card_collection_path = "res://source_codes/data/normal_drawpile.json"
+    cm._normal_paths = [
+        "res://source_codes/data/normalcard/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon_database.json",
+        "res://source_codes/data/normalcard/armor_database.json",
+        "res://source_codes/data/normalcard/element_database.json",
+        "res://source_codes/data/normalcard/effect_database.json",
+        "res://source_codes/data/normalcard/recovery_database.json",
+    ]
+    cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
     cm.reset()
 
@@ -1059,7 +1094,13 @@ func _test_skill_manager_load() -> void:
     print("  -- 21b. SkillManager 数据库加载 --")
 
     var sm = SkillManagerS.new()
-    sm.load_database("res://source_codes/data/skill_database.json")
+    sm.load_databases([
+        "res://source_codes/data/character/species_skill_database.json",
+        "res://source_codes/data/character/earthpony/earthpony_skill_database.json",
+        "res://source_codes/data/character/unicorn/unicorn_skill_database.json",
+        "res://source_codes/data/character/pegasus/pegasus_skill_database.json",
+        "res://source_codes/data/character/alicorn/alicorn_skill_database.json",
+    ])
 
     var ids = ["earth_pony_strength", "unicorn_magic_reach", "pegasus_freedom",
                "maud_prospect", "maud_calm", "sunburst_cristall_shine"]

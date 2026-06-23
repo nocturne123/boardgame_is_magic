@@ -1,0 +1,12 @@
+[
+  {
+    "nice_name": "花束",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/花束.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/equipment/weapon.gd",
+    "type": "Weapon",
+    "identity": "花束",
+    "description": "",
+    "attack_range": 1
+  }
+]

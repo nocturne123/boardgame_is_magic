@@ -1,0 +1,15 @@
+[
+  {
+    "id": "sunburst_cristall_shine",
+    "nice_name": "水晶洗礼",
+    "category": "Character",
+    "skill_type": "Active",
+    "description": "每回合你可以弃置一张牌，为其他一个角色添加一个水晶洗礼印记。当该角色有体力恢复时，移除所有的印记，造成等量的真实伤害。",
+    "ignore_distance": true,
+    "range": -1,
+    "cooldown": 0,
+    "max_uses_per_turn": 0,
+    "needs_target": true,
+    "script_path": "res://source_codes/skills/character/sunburst_cristall_shine.gd"
+  }
+]

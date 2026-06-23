@@ -1,0 +1,11 @@
+[
+  {
+    "nice_name": "忠诚元素",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/忠诚元素.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/equipment/element.gd",
+    "type": "Element",
+    "identity": "忠诚元素",
+    "description": ""
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "nice_name": "物理攻击",
+    "texture_path": "res://assets/card_library/playable/actions/物理攻击.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/play/physical_attack.gd",
+    "type": "Attack",
+    "identity": "PhysicalAttack",
+    "description": "造成一次物理伤害"
+  },
+  {
+    "nice_name": "心理攻击",
+    "texture_path": "res://assets/card_library/playable/actions/心理攻击.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/play/mental_attack.gd",
+    "type": "Attack",
+    "identity": "MentalAttack",
+    "description": "造成一次心理伤害"
+  },
+  {
+    "nice_name": "魔法攻击",
+    "texture_path": "res://assets/card_library/playable/actions/法术攻击.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/play/magic_attack.gd",
+    "type": "Attack",
+    "identity": "MagicAttack",
+    "description": "造成一次魔法伤害"
+  },
+  {
+    "nice_name": "事件触发牌",
+    "texture_path": "res://assets/card_library/playable/actions/触发事件.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/event_system/event_trigger_card.gd",
+    "type": "EventTrigger",
+    "identity": "事件触发牌",
+    "description": "抽到时立即触发一个随机事件，事件结算后摸一张牌。"
+  },
+  {
+    "nice_name": "偷牌",
+    "texture_path": "res://assets/card_library/playable/actions/偷牌.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/play/steal_card.gd",
+    "type": "Steal",
+    "identity": "偷牌",
+    "description": "选择：偷取目标一张手牌，或弃置目标一张装备牌"
+  }
+]

@@ -22,7 +22,14 @@ config/features=PackedStringArray("4.7")
 [autoload]
 
 SaveManager="*res://source_codes/save_manager.gd"
+DialogueManager="*res://addons/dialogue_manager/dialogue_manager.gd"
+VFX="*uid://ecyiymmaj3jv"
+EnvVFX="*uid://qomyut16hnoi"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/hexagon_tilemaplayer/plugin.cfg")
+enabled=PackedStringArray("res://addons/dialogue_manager/plugin.cfg", "res://addons/hexagon_tilemaplayer/plugin.cfg", "res://addons/vfx_library/plugin.cfg")
+
+[internationalization]
+
+locale/translations_pot_files=PackedStringArray("res://test_dialogue.dialogue")

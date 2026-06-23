@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A My Little Pony fan-made turn-based tactical card battler on a hexagonal grid, built with **Godot 4.6.3** (GDScript). Interactive battle prototype — two characters (灰琪 Maud Pie vs 日光耀耀 Sun Burst) in `hud_battle.tscn` with full HUD, card play, hex movement, turn management, equipment system, skill system, and event system.
+A My Little Pony fan-made turn-based tactical card battler on a hexagonal grid, built with **Godot 4.7** (GDScript). Interactive battle prototype — two characters (灰琪 Maud Pie vs 日光耀耀 Sun Burst) in `hud_battle.tscn` with full HUD, card play, hex movement, turn management, equipment system, skill system, and event system.
+
+**Addons** (under `addons/`): hexagon_tilemaplayer v2.5.2 | dialogue_manager v3.10.1 | vfx_library v1.0.0
 
 ## Running the Game
 
@@ -14,7 +16,7 @@ Godot binary is at `../Godot_v4.6.3-stable_win64.exe` (relative to project root)
 # Interactive HUD battle — this is the active development scene
 ../Godot_v4.6.3-stable_win64.exe --path .
 
-# Headless unit test suite (91 tests)
+# Headless unit test suite
 ../Godot_v4.6.3-stable_win64.exe --headless --path . test/test_runner.tscn
 ```
 
@@ -266,14 +268,45 @@ func on_attach(player):
 
 ---
 
+## Addons
+
+| 插件 | 版本 | 用途 |
+|------|------|------|
+| **hexagon_tilemaplayer** | v2.5.2 | 六边形网格、cube 坐标、A* 寻路 |
+| **dialogue_manager** | v3.10.1 | 对话系统 |
+| **vfx_library** | v1.0.0 | 粒子效果（35+ 粒子 + 17+ Shader） |
+
+**hexagon_tilemaplayer UID 修复**：addon 原有的 `preload("uid://chl4qyjdth4vj")` 硬编码 UID 在清空 `.godot/` 缓存后会失效。已改为相对路径引用（`preload("hexagon_tilemaplayer.svg")`），修了 `plugin.gd`、`toolbar.gd`、`hexagon_tilemaplayer.gd` 三处。`demo/` 文件夹已禁用（移到 `_demo_disabled/`），zip 包已删除。
+
+---
+
 ## Core Systems (under `source_codes/`)
 
 ### Card System (`card_system/`)
 
-Data-driven from JSON files. `CardManager` manages only the **draw pile** and **discard pile**, plus card creation from database and queries.
+Data-driven from JSON files split into subdirectories under `source_codes/data/`. `CardManager` manages only the **draw pile** and **discard pile**, plus card creation from database and queries. Uses `_normal_paths` and `_bonus_paths` arrays to load from multiple subdirectories.
 
-- `card_database.json` — 63 card entries mapping identities to scripts, textures, descriptions. 装备牌可含 `skill_ids` 字段。
-- `normal_drawpile.json` — draw pile composition. `CardManager.shuffle_draw_pile` 控制是否洗牌（默认 false，按 JSON 顺序抽）。
+**Data directory structure**:
+```
+source_codes/data/
+├── character/          # 角色数据库（按种族拆分）
+│   ├── earthpony/earthpony_database.json + earthpony_skill_database.json
+│   ├── pegasus/pegasus_database.json + pegasus_skill_database.json
+│   ├── unicorn/unicorn_database.json + unicorn_skill_database.json
+│   ├── alicorn/alicorn_database.json + alicorn_skill_database.json
+│   └── species_skill_database.json
+├── normalcard/         # 普通卡牌（按类型拆分）
+│   ├── weapon_database.json, armor_database.json, element_database.json
+│   ├── baseplay_database.json, effect_database.json, recovery_database.json
+├── bonuscard/          # 奖励卡牌
+│   ├── bonus_weapon_database.json, bonus_armor_database.json
+│   ├── bonus_effect_database.json, bonus_recovery_database.json
+├── event/              # event_database.json
+└── cardpile/hudbattle_pile/  # 牌堆配置
+    ├── drawpile_database.json
+    ├── bonus_database.json
+    └── event_pile_database.json
+```
 - Card creation via `CardManager.create_card(nice_name)` loads the script from `resource_script_path` and copies all JSON fields onto the new resource.
 - Card type hierarchy: `CardData` (Resource) → `Baseplay` / `BaseEquipment` → `BaseWeapon`, `BaseArmor`, `BaseElement` / `BaseEffect` → `BaseRecovery`, `Gem` | `Baseplay` → `BaseAttack` (物理/魔法/心理攻击的参数化基类) / `StealCard` / `EventTriggerCard` (事件触发牌)
 - Cards use two execution paths: `execute(source, target, card_manager) -> bool` and `resolve(source, target) -> Variant`.
@@ -604,16 +637,24 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 
 ---
 
-## Refactoring Status (2026-06-22)
+## Refactoring Status (2026-06-24)
 
 核心重构已完成。已解决的历史违规见 git log。
+
+**本次更新已完成**：
+- 数据库拆分：`card_database.json` + `character_database.json` + `skill_database.json` + `event_database.json` + `normal_drawpile.json` 从单文件拆为按种族/类型的子目录结构
+- CardManager 改用 `_normal_paths` + `_bonus_paths` 数组加载多目录
+- hexagon_tilemaplayer UID 修复（3 个 .gd 文件）、demo 禁用、zip 删除
+- 新增 dialogue_manager v3.10.1、vfx_library v1.0.0 插件
+- 角色精灵从 5 张扩展到 50 张（来自 mlpvector.club），放在 `assets/raw_character/mlp_vector_club/`
+- Godot 升级到 4.7
 
 剩余未解决：
 
 | 文件 | 事项 | 说明 |
 |------|------|------|
-| `card_database.json` | 51 张 Effect 牌 + 10 张 Recovery 牌 | 占位空壳，无实际 execute/resolve 逻辑 |
-| `normal_drawpile.json` | 仅 19 张（含 3 张事件触发牌） | 规则要求 148 张摸牌堆，需扩充 |
+| normalcard/effect_database.json + recovery_database.json | 51 张 Effect 牌 + 10 张 Recovery 牌 | 占位空壳，无实际 execute/resolve 逻辑 |
+| cardpile/hudbattle_pile/drawpile_database.json | 仅 19 张（含 3 张事件触发牌） | 规则要求 148 张摸牌堆，需扩充 |
 | `EquipmentBar._swap_equipment` | 同类型拖拽交换占位 | 场景中每种槽只有 1 个，此路径暂不可达 |
 | 攻击距离校验 | 未实现 | BaseWeapon.attack_range 存在但 UseCard 不检查。unicorn_magic_reach 技能提供了 attack_range_bonus meta |
 | 事件系统 HUD | 未实现 | 事件牌堆/弃牌堆 sprite、全局效果面板 UI |

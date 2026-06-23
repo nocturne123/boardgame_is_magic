@@ -18,7 +18,10 @@ signal card_discarded(card_data: CardData)
 
 # ---- 配置 ----
 
-@export_file("*.json") var json_card_database_path: String
+## 普通卡牌数据库路径列表（normalcard/*.json），load_json_path() 加载后合并到 card_database。
+var _normal_paths: Array[String] = []
+## 奖励牌数据库路径列表（bonuscard/*.json），加载后合并到 _bonus_database。
+var _bonus_paths: Array[String] = []
 @export_file("*.json") var json_card_collection_path: String
 @export var shuffle_discard_on_empty_draw := true
 ## 是否在初始化时洗牌。false=按 JSON 顺序抽（测试用），true=随机洗牌。
@@ -26,8 +29,9 @@ signal card_discarded(card_data: CardData)
 
 # ---- 内部状态 ----
 
-var card_database: Array = []   ## 原始 JSON 数组，每项为 Dictionary
-var card_collection: Array = [] ## 初始抽牌堆的 nice_name 列表
+var card_database: Array = []    ## 普通卡牌定义（Dictionary 数组），从 _normal_paths 合并而来
+var _bonus_database: Array = []  ## 奖励牌定义（Dictionary 数组），从 _bonus_paths 合并而来
+var card_collection: Array = []  ## 初始抽牌堆的 nice_name 列表
 
 var _draw_pile: Array[CardData] = []
 var _discard_pile: Array[CardData] = []
@@ -39,7 +43,14 @@ func _ready() -> void:
     _reset_card_collection()
 
 func load_json_path() -> void:
-    card_database = _load_json_array(json_card_database_path)
+    # 加载普通卡牌 → card_database（合并为一个数组，保持查找逻辑不变）
+    card_database.clear()
+    for path in _normal_paths:
+        card_database.append_array(_load_json_array(path))
+    # 加载奖励牌 → _bonus_database
+    _bonus_database.clear()
+    for path in _bonus_paths:
+        _bonus_database.append_array(_load_json_array(path))
     card_collection = _load_json_array(json_card_collection_path)
 
 func _load_json_array(path: String) -> Array:

@@ -1,0 +1,11 @@
+[
+  {
+    "nice_name": "铠甲",
+    "texture_path": "res://assets/card_library/playable/tools/list/extension_1/铠甲.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/equipment/armor.gd",
+    "type": "Armor",
+    "identity": "铠甲",
+    "description": ""
+  }
+]

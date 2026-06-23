@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d3lw8xail3jmj"]
 
-[ext_resource type="Texture2D" uid="uid://b1k46rrgnl88y" path="res://assets/raw_character/mlp_vector_club/maud.png" id="1_fbqyk"]
+[ext_resource type="Texture2D" uid="uid://dnhl4al1k0slr" path="res://assets/raw_character/mlp_vector_club/Maud Pie.png" id="1_fbqyk"]
 [ext_resource type="Script" uid="uid://cbyj81dadb4q5" path="res://source_codes/players/player.gd" id="1_mq2hv"]
 [ext_resource type="Script" uid="uid://5qbb5ls86jmx" path="res://source_codes/players/actions/ActionTree.gd" id="4_f5s02"]
 [ext_resource type="Script" uid="uid://blfi2mcli63hx" path="res://source_codes/players/actions/DecreaseHealth.gd" id="6_jpcrm"]
@@ -11,12 +11,12 @@
 [ext_resource type="Script" uid="uid://cadreyhjihse6" path="res://source_codes/players/actions/TurnStart.gd" id="10_upp5v"]
 [ext_resource type="Script" uid="uid://b5atm6yphndr6" path="res://source_codes/players/actions/DiscardCard.gd" id="11_ujya1"]
 [ext_resource type="Script" uid="uid://tu7jyn0c3am5" path="res://source_codes/players/actions/UseCard.gd" id="12_jc2s0"]
-[ext_resource type="Script" uid="uid://ci84xxbgeocra" path="res://source_codes/players/actions/RollDiceEntry.gd" id="13_rollentry"]
-[ext_resource type="Script" path="res://source_codes/players/actions/RollDiceExecute.gd" id="13_rollexecute"]
-[ext_resource type="Script" path="res://source_codes/players/actions/EventTriggerPhase.gd" id="15_eventphase"]
-[ext_resource type="Script" path="res://source_codes/players/actions/MoveAction.gd" id="14_move"]
-[ext_resource type="Script" path="res://source_codes/players/actions/HealEntry.gd" id="15_healentry"]
-[ext_resource type="Script" path="res://source_codes/players/actions/HealExecute.gd" id="16_healexecute"]
+[ext_resource type="Script" uid="uid://ci84xxbgeocra" path="res://source_codes/players/actions/RollDice.gd" id="13_rollentry"]
+[ext_resource type="Script" uid="uid://i5nl3sqv2wh3" path="res://source_codes/players/actions/RollDiceExecute.gd" id="13_rollexecute"]
+[ext_resource type="Script" uid="uid://31xj1ngu8uyf" path="res://source_codes/players/actions/EventTriggerPhase.gd" id="15_eventphase"]
+[ext_resource type="Script" uid="uid://cbbdhpryxxur2" path="res://source_codes/players/actions/MoveAction.gd" id="14_move"]
+[ext_resource type="Script" uid="uid://cki2gptckru" path="res://source_codes/players/actions/HealEntry.gd" id="15_healentry"]
+[ext_resource type="Script" uid="uid://fkkftjga4u1q" path="res://source_codes/players/actions/HealExecute.gd" id="16_healexecute"]
 
 [node name="PLayer" type="Sprite2D" unique_id=1215331566]
 texture_filter = 1

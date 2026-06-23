@@ -2,12 +2,12 @@ extends MenuButton
 
 var popup: PopupMenu
 var selection: EditorSelection
-var plugin = EditorPlugin
+var plugin: EditorPlugin
 
 
 func _init(_plugin: EditorPlugin) -> void:
 	plugin = _plugin
-	icon = preload("uid://chl4qyjdth4vj")
+	icon = preload("hexagon_tilemaplayer.svg")
 	popup = get_popup()
 	selection = EditorInterface.get_selection()
 	_populate_menu()

@@ -119,19 +119,37 @@ func _deferred_start() -> void:
 
 
 func _setup_card_manager() -> void:
-    card_mgr.json_card_database_path = "res://source_codes/data/card_database.json"
-    card_mgr.json_card_collection_path = "res://source_codes/data/normal_drawpile.json"
+    card_mgr.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
+    card_mgr._normal_paths = [
+        "res://source_codes/data/normalcard/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon_database.json",
+        "res://source_codes/data/normalcard/armor_database.json",
+        "res://source_codes/data/normalcard/element_database.json",
+        "res://source_codes/data/normalcard/effect_database.json",
+        "res://source_codes/data/normalcard/recovery_database.json",
+    ]
+    card_mgr._bonus_paths = [
+        "res://source_codes/data/bonuscard/bonus_weapon_database.json",
+        "res://source_codes/data/bonuscard/bonus_armor_database.json",
+        "res://source_codes/data/bonuscard/bonus_effect_database.json",
+        "res://source_codes/data/bonuscard/bonus_recovery_database.json",
+    ]
     card_mgr.load_json_path()
     card_mgr.reset()
 
 
 func _setup_skill_manager() -> void:
-    skill_mgr.skill_database_path = "res://source_codes/data/skill_database.json"
-    skill_mgr.load_database(skill_mgr.skill_database_path)
+    skill_mgr.load_databases([
+        "res://source_codes/data/character/species_skill_database.json",
+        "res://source_codes/data/character/earthpony/earthpony_skill_database.json",
+        "res://source_codes/data/character/unicorn/unicorn_skill_database.json",
+        "res://source_codes/data/character/pegasus/pegasus_skill_database.json",
+        "res://source_codes/data/character/alicorn/alicorn_skill_database.json",
+    ])
 
 
 func _setup_event_system() -> void:
-    event_deck.event_database_path = "res://source_codes/data/event_database.json"
+    event_deck.event_database_path = "res://source_codes/data/event/event_database.json"
     event_deck.load_database(event_deck.event_database_path)
     event_deck.reset()
     event_mgr.event_deck = event_deck
@@ -143,7 +161,16 @@ func _setup_event_system() -> void:
 
 
 func _setup_players() -> void:
-    var char_db := _load_json("res://source_codes/data/character_database.json")
+    # 从拆分的角色文件中加载所有角色数据并合并
+    var char_db: Array = []
+    var char_paths := [
+        "res://source_codes/data/character/earthpony/earthpony_database.json",
+        "res://source_codes/data/character/unicorn/unicorn_database.json",
+        "res://source_codes/data/character/pegasus/pegasus_database.json",
+        "res://source_codes/data/character/alicorn/alicorn_database.json",
+    ]
+    for path in char_paths:
+        char_db.append_array(_load_json(path))
     var char_a: Dictionary = _find_char_by_name(char_db, "灰琪")
     var char_b: Dictionary = _find_char_by_name(char_db, "日光耀耀")
 
@@ -454,6 +481,12 @@ func _update_turn_info() -> void:
 
 
 func _update_hand_display() -> void:
+    # 使用 call_deferred 延迟执行，等父容器完成布局后 HandFan 有正确的 size，
+    # 否则 _try_layout() 会因 size.x == 0 而反复推迟，导致手牌不显示。
+    call_deferred("_do_update_hand_display")
+
+
+func _do_update_hand_display() -> void:
     hand_fan.clear_cards()
 
     var controller := turn_mgr.get_current_player()

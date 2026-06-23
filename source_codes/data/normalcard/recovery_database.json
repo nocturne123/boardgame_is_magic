@@ -1,0 +1,92 @@
+[
+  {
+    "nice_name": "苹果",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/苹果.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "苹果",
+    "description": ""
+  },
+  {
+    "nice_name": "药剂",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/药剂.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "药剂",
+    "description": ""
+  },
+  {
+    "nice_name": "纸杯蛋糕",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/纸杯蛋糕.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "纸杯蛋糕",
+    "description": ""
+  },
+  {
+    "nice_name": "马芬",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/马芬.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "马芬",
+    "description": ""
+  },
+  {
+    "nice_name": "蛋糕",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/蛋糕.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "蛋糕",
+    "description": ""
+  },
+  {
+    "nice_name": "红豆羹",
+    "texture_path": "res://assets/card_library/playable/tools/list/extension_2/红豆羹.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "红豆羹",
+    "description": ""
+  },
+  {
+    "nice_name": "饮料自助",
+    "texture_path": "res://assets/card_library/playable/tools/list/extension_2/饮料自助.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "饮料自助",
+    "description": ""
+  },
+  {
+    "nice_name": "甜苹果汁",
+    "texture_path": "res://assets/card_library/playable/tools/list/extension_3/甜苹果汁.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "甜苹果汁",
+    "description": ""
+  },
+  {
+    "nice_name": "膨胀的布丁",
+    "texture_path": "res://assets/card_library/playable/tools/list/extension_3/膨胀的布丁.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "膨胀的布丁",
+    "description": ""
+  },
+  {
+    "nice_name": "彩虹饼干",
+    "texture_path": "res://assets/card_library/playable/tools/list/extension_3/彩虹饼干.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/effect/base_recovery.gd",
+    "type": "Recovery",
+    "identity": "彩虹饼干",
+    "description": ""
+  }
+]

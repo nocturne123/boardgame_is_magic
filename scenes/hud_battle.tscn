@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://84frhtknc1r2" path="res://source_codes/layer_control/map_layer.gd" id="4_maplayer"]
 [ext_resource type="TileSet" uid="uid://cxiuyapdll1p" path="res://scenes/hex_tileset_v3.tres" id="5_tileset"]
 [ext_resource type="PackedScene" uid="uid://d3lw8xail3jmj" path="res://scenes/player.tscn" id="6_player"]
-[ext_resource type="Texture2D" uid="uid://crqfb0fvme5mc" path="res://assets/raw_character/mlp_vector_club/sun_burst.png" id="7_sunburst"]
+[ext_resource type="Texture2D" uid="uid://ppnl54egve4p" path="res://assets/raw_character/mlp_vector_club/Sunburst.png" id="7_sunburst"]
 [ext_resource type="Script" uid="uid://buj6ft1vvdf2f" path="res://addons/hexagon_tilemaplayer/hexagon_tilemaplayer.gd" id="8_hexlayer"]
 [ext_resource type="Script" uid="uid://h4l3ra1jk4l" path="res://source_codes/hud/player_info_panel.gd" id="9_playerpanel"]
 [ext_resource type="Script" uid="uid://b8uk0acsmj40p" path="res://source_codes/hud/hand_fan.gd" id="10_handfan"]
@@ -16,8 +16,8 @@
 [ext_resource type="Script" uid="uid://d8t5f2wxx0ne" path="res://source_codes/skills/skill_manager.gd" id="14_skillmgr"]
 [ext_resource type="Script" uid="uid://tg3n82x5l2b0" path="res://source_codes/event_system/event_manager.gd" id="15_eventmgr"]
 [ext_resource type="Script" uid="uid://6s6tm78kidgd" path="res://source_codes/event_system/event_deck.gd" id="16_eventdeck"]
-[ext_resource type="Script" path="res://source_codes/terrain/terrain_manager.gd" id="17_terrain"]
-[ext_resource type="Script" path="res://source_codes/hud/ui_splitter.gd" id="18_splitter"]
+[ext_resource type="Script" uid="uid://dos54iqcg7fsq" path="res://source_codes/terrain/terrain_manager.gd" id="17_terrain"]
+[ext_resource type="Script" uid="uid://c8q1rxlhyutw1" path="res://source_codes/hud/ui_splitter.gd" id="18_splitter"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_topbar"]
 content_margin_left = 12.0
@@ -187,12 +187,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "结束回合"
 
-[node name="VSplitter1" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox"]
+[node name="VSplitter1" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=1266232549]
 layout_mode = 2
 script = ExtResource("18_splitter")
-orientation = 0
 target_path = NodePath("../TopBar")
-target_is_before = true
 
 [node name="MiddleHBox" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=2100000012]
 layout_mode = 2
@@ -205,12 +203,11 @@ layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("9_playerpanel")
 
-[node name="HSplitter1" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox"]
+[node name="HSplitter1" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=447147752]
 layout_mode = 2
 script = ExtResource("18_splitter")
 orientation = 1
 target_path = NodePath("../LeftPanel")
-target_is_before = true
 
 [node name="MapSpacer" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=2100000014]
 layout_mode = 2
@@ -218,7 +215,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 1
 
-[node name="HSplitter2" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox"]
+[node name="HSplitter2" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox" unique_id=2095757650]
 layout_mode = 2
 script = ExtResource("18_splitter")
 orientation = 1
@@ -234,13 +231,6 @@ theme_override_constants/separation = 0
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_carddetail")
-
-[node name="VSplitter2" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox"]
-layout_mode = 2
-script = ExtResource("18_splitter")
-orientation = 0
-target_path = NodePath("../CardDetailPanel")
-target_is_before = true
 
 [node name="CardDetailVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox/CardDetailPanel" unique_id=2100000017]
 layout_mode = 2
@@ -262,6 +252,11 @@ theme_override_colors/default_color = Color(0.85, 0.8, 0.72, 1)
 theme_override_font_sizes/normal_font_size = 12
 bbcode_enabled = true
 text = "鼠标悬停卡牌查看详情"
+
+[node name="VSplitter2" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox" unique_id=2085118830]
+layout_mode = 2
+script = ExtResource("18_splitter")
+target_path = NodePath("../CardDetailPanel")
 
 [node name="LogPanel" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/MiddleHBox/RightVBox" unique_id=2100000021]
 layout_mode = 2
@@ -291,10 +286,9 @@ bbcode_enabled = true
 fit_content = true
 scroll_following = true
 
-[node name="VSplitter3" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox"]
+[node name="VSplitter3" type="Control" parent="HudLayer/HudContainer/Margin/MainVBox" unique_id=1513655935]
 layout_mode = 2
 script = ExtResource("18_splitter")
-orientation = 0
 target_path = NodePath("../BottomArea")
 target_is_before = false
 
@@ -303,11 +297,11 @@ custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_bottom")
 
-[node name="BottomVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea"]
+[node name="BottomVBox" type="VBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea" unique_id=2062109640]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="SkillRow" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox"]
+[node name="SkillRow" type="HBoxContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox" unique_id=314697149]
 layout_mode = 2
 alignment = 1
 
@@ -336,7 +330,6 @@ script = ExtResource("12_equipbar")
 
 [node name="EquipGrid" type="GridContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar" unique_id=2100000032]
 layout_mode = 2
-theme_override_constants/separation = 4
 columns = 3
 
 [node name="WeaponSlot" type="PanelContainer" parent="HudLayer/HudContainer/Margin/MainVBox/BottomArea/BottomVBox/BottomHBox/EquipmentBar/EquipGrid" unique_id=2100000033]

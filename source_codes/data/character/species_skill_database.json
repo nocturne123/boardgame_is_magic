@@ -1,0 +1,41 @@
+[
+  {
+    "id": "earth_pony_strength",
+    "nice_name": "蛮力",
+    "category": "Species",
+    "skill_type": "Passive",
+    "description": "打出攻击牌时，可以掷一个骰子，结果≥3则伤害+1",
+    "ignore_distance": false,
+    "range": -1,
+    "cooldown": 0,
+    "max_uses_per_turn": 0,
+    "needs_target": false,
+    "script_path": "res://source_codes/skills/species/earth_pony_strength.gd"
+  },
+  {
+    "id": "unicorn_magic_reach",
+    "nice_name": "魔法触及",
+    "category": "Species",
+    "skill_type": "Passive",
+    "description": "攻击距离 +1（装备武器的攻击范围额外增加 1 格）",
+    "ignore_distance": false,
+    "range": -1,
+    "cooldown": 0,
+    "max_uses_per_turn": 0,
+    "needs_target": false,
+    "script_path": "res://source_codes/skills/species/unicorn_magic_reach.gd"
+  },
+  {
+    "id": "pegasus_freedom",
+    "nice_name": "自由翱翔",
+    "category": "Species",
+    "skill_type": "Passive",
+    "description": "可以主动选择是否受到地形效果。点击技能槽切换开关。",
+    "ignore_distance": false,
+    "range": -1,
+    "cooldown": 0,
+    "max_uses_per_turn": 0,
+    "needs_target": false,
+    "script_path": "res://source_codes/skills/species/pegasus_freedom.gd"
+  }
+]
