@@ -608,6 +608,7 @@ func _on_chain_paused(action: BaseAction) -> void:
             var tree = action.get_parent()
             if tree and tree.has_method("resume_chain"):
                 tree.resume_chain()
+                _update_all_ui()
 
 
 func _show_prospect_dialog(entry: BaseAction) -> void:
@@ -617,11 +618,13 @@ func _show_prospect_dialog(entry: BaseAction) -> void:
         entry.prospect_activated = true
         overlay.queue_free()
         if tree: tree.resume_chain()
+        _update_all_ui()
     )
     _add_dialog_button(overlay, "否", func():
         entry.prospect_activated = false
         overlay.queue_free()
         if tree: tree.resume_chain()
+        _update_all_ui()
     )
 
 
@@ -632,11 +635,13 @@ func _show_dice_choice_dialog(calm: BaseAction) -> void:
         calm.chosen = calm.roll1
         overlay.queue_free()
         if tree: tree.resume_chain()
+        _update_all_ui()
     )
     _add_dialog_button(overlay, str(calm.roll2), func():
         calm.chosen = calm.roll2
         overlay.queue_free()
         if tree: tree.resume_chain()
+        _update_all_ui()
     )
 
 
