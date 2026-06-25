@@ -1,0 +1,28 @@
+[
+  {
+    "id": "staff_magic_conversion",
+    "nice_name": "魔力灌注",
+    "category": "Equipment",
+    "skill_type": "Passive",
+    "description": "所有攻击牌转化为魔法攻击，使用魔法能力计算伤害。可开关。",
+    "ignore_distance": false,
+    "range": -1,
+    "cooldown": 0,
+    "max_uses_per_turn": 0,
+    "needs_target": false,
+    "script_path": "res://source_codes/skills/equipment/staff_magic_conversion.gd"
+  },
+  {
+    "id": "party_cannon_recovery",
+    "nice_name": "派对时间",
+    "category": "Equipment",
+    "skill_type": "Passive",
+    "description": "攻击后进行一次 D6 判定（难度 3），成功则恢复 1 点体力。可开关。",
+    "ignore_distance": false,
+    "range": -1,
+    "cooldown": 0,
+    "max_uses_per_turn": 0,
+    "needs_target": false,
+    "script_path": "res://source_codes/skills/equipment/party_cannon.gd"
+  }
+]

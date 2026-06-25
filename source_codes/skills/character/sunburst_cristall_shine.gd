@@ -11,11 +11,15 @@ class_name SunburstCristallShine extends SkillData
 ##   CrystalMarkTrigger 节点，插入到 HealExecute 之后
 ## - 技能失效时：移除所有目标树上的 CrystalMarkTrigger 节点，
 ##   恢复 HealExecute → null，清除所有 meta
+## - 主动触发：通过 UseSkill 节点 → CrystalShineExecute（on_attach 创建）
 
 const _CrystalMarkTriggerScript = preload("res://source_codes/players/actions/CrystalMarkTrigger.gd")
 
 ## 已标记的目标玩家列表（用于 on_detach 时清理）
 var _marked_targets: Array[Player] = []
+
+## on_attach 创建的 CrystalShineExecute 节点引用
+var _crystal_action: CrystalShineExecute = null
 
 
 func _init() -> void:
@@ -29,18 +33,23 @@ func _init() -> void:
     cooldown = 0
     max_uses_per_turn = 0
     needs_target = true
+    needs_card_discard = true
 
 
-func on_attach(_player: Player) -> void:
-    # 纯主动技能，不修改自身 ActionTree 链条。
-    # 由 HUD 点击技能槽触发，通过 CrystalShineExecute 动作执行。
-    pass
+func on_attach(player: Player) -> void:
+    var tree = _get_action_tree(player)
+    if tree == null:
+        return
+    _crystal_action = _create_action_node(tree,
+        "res://source_codes/skills/actions/crystal_shine_execute.gd", "CrystalShineExecute")
 
+func get_action_node(_tree: ActionTree) -> BaseAction:
+    return _crystal_action
 
-func on_detach(_player: Player) -> void:
+func on_detach(player: Player) -> void:
     # 技能失效时，所有印记一起失效
     clear_all_marks()
-    super.on_detach(_player)
+    super.on_detach(player)
 
 
 # ============================================================
@@ -88,7 +97,8 @@ func _insert_crystal_trigger(target: Player) -> void:
     var node: Node = _CrystalMarkTriggerScript.new()
     node.name = "CrystalMarkTrigger"
     tree.add_child(node)
-    # 插入链条：HealExecute → CrystalMarkTrigger
+    # 插入链条：保存 HealExecute 的原 next，CrystalMarkTrigger 接在中间
+    node.next_action = heal_execute.next_action
     heal_execute.next_action = node
 
 
@@ -102,5 +112,6 @@ func _remove_crystal_trigger(target: Player) -> void:
         return
     var heal_execute = tree.get_node_or_null("HealExecute")
     if heal_execute:
-        heal_execute.next_action = null
+        # 恢复：绕过 CrystalMarkTrigger，接回它后面的节点
+        heal_execute.next_action = node.next_action
     node.queue_free()

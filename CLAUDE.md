@@ -266,6 +266,60 @@ func on_attach(player):
 
 **检查点**：`_setup_players()` / `_draw_initial_hands()` / `_setup_skills()` 中不应出现 `chain_of_actions()` 调用。`_start_game()` 之后的任何状态变更必须通过 ActionTree。
 
+### R13. 链条修改必须保存/恢复原 next_action
+
+**规则**：任何修改 `xxx.next_action` 的技能，必须先在 `on_attach` 中**保存原值**到成员变量，修改链条后恢复时用保存的值而不是硬编码默认值。游戏运行时不能假设链条是默认状态——其他技能可能已经修改过。
+
+**正确模式**：
+```gdscript
+var _saved_next: BaseAction = null
+
+func on_attach(player):
+    _saved_next = tree.some_node.next_action   # 保存原值
+    tree.some_node.next_action = my_node        # 插入自己
+    my_node.next_action = _saved_next           # 接回原下游
+
+func on_detach(player):
+    tree.some_node.next_action = _saved_next    # 恢复原值
+```
+
+**禁止模式**：
+```gdscript
+# ✗ 硬编码默认值——如果其他技能先改了链，恢复时会覆盖掉
+tree.some_node.next_action = tree.default_node
+```
+
+**检查点**：`on_detach` 中不应出现 `= tree.xxx` 形式的链恢复，必须使用 `on_attach` 中保存的变量。
+
+### R14. take_action() 内禁止嵌套 chain_of_actions
+
+**规则**：`take_action()` 内不得调用 `chain_of_actions()` 启动嵌套链。ActionTree 的 `_current_chain_action` 是单变量非栈，嵌套链会覆盖外层状态：外层链在嵌套链返回后提前终止；若嵌套链内发生暂停，暂停的节点被外层链清空后无法恢复。
+
+**正确模式 A**：通过 `inform_next_action` 串联
+```gdscript
+# PartyCannonRecovery：不嵌套，改链路
+func inform_next_action():
+    tree.roll_dice_entry.purpose = "party_cannon"
+    next_action = tree.roll_dice_entry    # 链自然走到骰子链
+```
+
+**正确模式 B**：直接调用节点方法（仅限不暂停的节点）
+```gdscript
+# CalmRollExecute._run_standard_roll：手动调标准掷骰
+tree.roll_dice_execute.take_action()
+entry.dice_result = tree.roll_dice_execute.dice_result
+```
+
+**例外**：启动 `heal_entry` 之类永不暂停的链可以接受——但必须确认目标链中所有节点都不会设 `waiting = true`。
+
+**检查点**：在所有 `take_action()` 方法中搜索 `chain_of_actions`，除已确认不可暂停的链外均为违规。
+
+### R15. 节点插入必须保留下游
+
+**规则**：在 A → B 之间插入节点 C 时，必须：读 `A.next_action` 保存为 `old` → 设 `A.next_action = C` → 设 `C.next_action = old`。不能设 `C.next_action = null` 或硬编码值。移除节点时同理，用 `node.next_action` 恢复。
+
+**检查点**：`_insert_*` / `_remove_*` 方法中不应出现 `xxx.next_action = null`，必须使用保存/传递的下游值。
+
 ---
 
 ## Addons
@@ -295,9 +349,13 @@ source_codes/data/
 │   ├── unicorn/unicorn_database.json + unicorn_skill_database.json
 │   ├── alicorn/alicorn_database.json + alicorn_skill_database.json
 │   └── species_skill_database.json
-├── normalcard/         # 普通卡牌（按类型拆分）
-│   ├── weapon_database.json, armor_database.json, element_database.json
-│   ├── baseplay_database.json, effect_database.json, recovery_database.json
+├── normalcard/         # 普通卡牌（按类型拆分子目录）
+│   ├── armor/armor_database.json + armor_skill_database.json
+│   ├── baseplay/baseplay_database.json
+│   ├── effect/effect_database.json
+│   ├── element/element_database.json + element_skill_database.json
+│   ├── recovery/recovery_database.json
+│   └── weapon/weapon_database.json + weapon_skill_database.json
 ├── bonuscard/          # 奖励卡牌
 │   ├── bonus_weapon_database.json, bonus_armor_database.json
 │   ├── bonus_effect_database.json, bonus_recovery_database.json
@@ -311,7 +369,10 @@ source_codes/data/
 - Card type hierarchy: `CardData` (Resource) → `Baseplay` / `BaseEquipment` → `BaseWeapon`, `BaseArmor`, `BaseElement` / `BaseEffect` → `BaseRecovery`, `Gem` | `Baseplay` → `BaseAttack` (物理/魔法/心理攻击的参数化基类) / `StealCard` / `EventTriggerCard` (事件触发牌)
 - Cards use two execution paths: `execute(source, target, card_manager) -> bool` and `resolve(source, target) -> Variant`.
 - **CardData** has `skill_ids: Array[String]` field — 装备牌从 JSON 加载，装备时通过 `on_equip` 挂接对应技能。
+- **CardData** has `needs_range_check: bool` + `effective_range: int` — 非攻击牌的距离校验参数。Attack 类型自动走武器+meta计算。
 - **Equipment cards**: `execute()` equips to slot, sets `replaced_old_card`. `on_equip` / `on_unequip` hooks — 子类调 `super` 继承技能挂接，再做自己的属性加成。
+- **Weapon card** (花束/法杖): `on_equip` 写 `player.attack_range = attack_range`，`on_unequip` 重置为 1。
+- **法杖 (Staff)**: attack_range=2，附带可开关被动技能「魔力灌注」——点击技能槽切换，启用时所有攻击牌转为魔法攻击（type=Magic，num=magic_ability）。
 - **Armor card** (铠甲): `on_equip` adds +1 `physical_defence` and +1 `magic_defence`; `on_unequip` removes them. **NOT** the `armor` consumable buffer.
 - **Collection items**: Each player has `collection_item_ids: Array[String]`. Collection items NEVER go to discard pile. `is_collection_item(identity)` checks against this list.
 - `CardManager.peek_draw_pile()` — 翻看抽牌堆顶牌（不抽出），供勘探技能使用。
@@ -322,6 +383,7 @@ source_codes/data/
 `Player` extends `Sprite2D`. **Pure data class**.
 
 - Data: `@export` stats, `equipment: Dictionary` (maps `EquipmentSlotType` → `Array[CardData]`), `hand: Array[CardData]`, `skills: Array[SkillData]`, `card_manager` reference.
+- `attack_range: int = 1` — 基础攻击距离，武器 `on_equip` 写入，`on_unequip` 重置为 1。RangeCheck 读取此值+meta计算有效距离。
 - `armor: int = 0` — 可消耗吸收层，setter clamp 到 0-4。角色初始化默认 0，character_database.json 不含此字段。
 - Hand management: `add_card_to_hand()`, `remove_card_from_hand()`, signals `card_added_to_hand`, `card_removed_from_hand`, `hand_updated`.
 - Equipment methods: `_add_to_slot()`, `_remove_from_slot()`, `move_to_collection_slot()`, `move_from_collection_to_slot()`, `is_slot_occupied_by_collection()`, `is_collection_item()`, `get_equipment_in_slot()`, `has_equipment_in_slot()`.
@@ -353,10 +415,12 @@ Active actions:
 
 | 动作 | 触发方式 | 说明 |
 |------|---------|------|
-| `UseCard` | HudBattle 选牌+点击目标 | **调度器**：`inform_next_action()` 按 `is BaseEquipment`/`is BaseEffect`/`type=="Event"` 分发到子节点 |
-| `UseEquipment` | UseCard 分发 | 收藏品占用检查 → `execute()` 装备 + 技能挂接 → 旧牌处理 |
+| `UseCard` | HudBattle 选牌+点击目标 | **调度器**：`inform_next_action()` 按 `is BaseEquipment`/`is BaseEffect`/`type=="Event"` 分发到子节点。Attack 牌按 `needs_range_check` 路由经 RangeCheck |
+| `RangeCheck` | UseCard/UseSkill 按需路由 | **复用距离校验**：`cube_distance(source, target) > max_range` 时阻断链。参数由上游注入 |
+| `UseSkill` | HudBattle 技能激活 | **主动技能统一入口**：`inform_next_action()` 按 `skill.needs_target`/`ignore_distance` 决定是否走 RangeCheck，然后路由到技能专属 action |
+| `UseEquipment` | UseCard 分发 | 收藏品占用检查（同类型装备即使为收藏品也允许替换）→ `execute()` 装备 + 技能挂接 → 旧牌处理（收藏品进 Collection 槽，非收藏品进弃牌堆） |
 | `UseEffect` | UseCard 分发 | `execute()` → 手牌移除 → 去向 |
-| `UseBaseplay` | UseCard 分发 | `execute()` → `resolve()` fallback（Attack → Damage 链，含蛮力/事件伤害修正）→ 手牌移除 → 去向 → 攻击次数递减 |
+| `UseBaseplay` | UseCard 分发（经 RangeCheck） | `execute()` → `resolve()` fallback（Attack → Damage 链，含蛮力/事件伤害修正/法杖魔法转换）→ 手牌移除 → 去向 → 攻击次数递减 |
 | `UseEventCard` | UseCard 分发 (type=="Event") | 打出事件手牌（魔法对决）。不消耗 attack_chance。用完进事件弃牌堆 |
 | `MoveAction` | HudBattle 移动模式 | 设 `map_position`，递减 `move_chance_in_turn`。**钩入地形系统**：通知 TerrainManager.on_player_moved |
 | `DrawCard` | HudBattle 点击抽牌堆 / TurnStart 链 | 抽牌到手牌。**抽到事件触发牌直接打出**（进弃牌堆 → 触发事件 → 事件后抽牌，递归级联） |
@@ -386,11 +450,57 @@ Active actions:
 - `_create_action_node(tree, script_path, name)` — 幂等创建 action 节点（同名已存在则返回已有的）。
 
 **技能与 ActionTree 链条的交互方式**:
-- 技能不使用回调钩子，而是直接修改 ActionTree 的 action 链条
-- `on_attach` 时插入 action 节点到链条中，`on_detach` 时恢复默认链条
-- 需要玩家交互的 action 节点设 `waiting = true` 暂停 chain，HudBattle 通过 `chain_paused` 信号响应
 
-**六个已实现的技能**:
+技能通过三种模式影响 ActionTree。选择哪种模式取决于技能要拦截的链节点和效果类型。
+
+**模式一：链修改（INSERT / REPLACE）** —— 最常用，在 `on_attach` 中直接操作 `next_action`
+
+适用场景：技能需要在某个链节点之前/之后/替换插入自己的 action 节点。
+
+```
+INSERT（勘探）:
+  on_attach: 保存 A.next_action → A.next_action = 新节点 → 新节点.next_action = 保存值
+  on_detach: A.next_action = 保存值
+  链变化: A → B  变成  A → 新节点 → B
+
+REPLACE（冷静）:
+  on_attach: 保存 A.next_action → A.next_action = 新节点
+  on_detach: A.next_action = 保存值
+  链变化: A → B  变成  A → 新节点
+```
+
+关键约束（R13/R15）：必须保存原 `next_action`，不能假设默认值。`on_detach` 必须用保存值恢复。
+
+**模式二：动态路由（meta + inform_next_action）** —— 不直接改链，在运行时决定走向
+
+适用场景：技能效果只在特定条件下触发，链结构需要在运行时动态决定。
+
+```
+蛮力:
+  on_attach: 创建节点，存到 use_card 的 meta
+  UseCard.inform_next_action(): 检查 meta → 是攻击牌且技能开启 → 插入掷骰链
+
+派对大炮:
+  on_attach: 创建 PartyCannonRecovery + PartyCannonResult 节点（不挂链）
+  UseBaseplay.take_action(): 攻击后检查 meta → 设 next_action = PartyCannonRecovery
+  PartyCannonRecovery.inform_next_action(): 链走到骰子链
+  骰子链结束后自然走到 PartyCannonResult（已在链中）
+
+UseSkill（水晶洗礼）:
+  UseSkill.inform_next_action(): 调 skill.get_action_node(tree) → 路由到技能专属节点
+```
+
+**模式三：纯 meta** —— 不改链，只在 action 节点内部读 meta 做判断
+
+适用场景：效果是修改已有 action 节点的内部逻辑（如改伤害类型、加减数值），不需要插新节点。
+
+```
+魔法触及:  meta "attack_range_bonus"     → RangeCheck._get_max_range() 读取
+自由翱翔:  meta "terrain_immune"          → TerrainManager 读取
+魔力灌注:  meta "equip_staff_magic"       → UseBaseplay.take_action() 读取
+```
+
+**八个已实现的技能**:
 
 | 技能 | 类型 | 来源 | 链条修改方式 |
 |------|------|------|-------------|
@@ -400,6 +510,8 @@ Active actions:
 | 勘探 | 主动 | 灰琪角色 | 在 TurnStart→DrawCard 之间插入 ProspectEntry（暂停等 HUD 问是否使用），DrawCard 之后插入 ProspectEffect |
 | 冷静 | 被动 | 灰琪角色 | 替换 RollDiceExecute 为 CalmRollExecute（掷两次，暂停等 HUD 让玩家选，陆马种族判定不生效） |
 | 水晶洗礼 | 主动 | 日光耀耀角色 | 弃手牌对目标 add_mark。首次标记时在目标 ActionTree 上动态插入 CrystalMarkTrigger 到 HealExecute 之后。技能失效/on_detach 时恢复链条+清除所有印记 |
+| 魔力灌注 | 被动（可开关） | 法杖装备 | 点击技能槽 toggle。启用时设 meta `equip_staff_magic`，UseBaseplay 读取后将攻击牌转为魔法伤害（type=Magic，num=magic_ability） |
+| 派对时间 | 被动（可开关） | 派对大炮装备 | 动态路由：UseBaseplay→PartyCannonRecovery→骰子链→PartyCannonResult。PartyCannonRecovery 临时挂 Result 到骰子链末端，Result 执行完后恢复骰子链原状。D6≥3 恢复 1 点体力 |
 
 **SkillManager** (`skills/skill_manager.gd`) — 节点，放在 `logic` 下:
 - 加载 `skill_database.json`
@@ -603,7 +715,7 @@ HudLayer/HudContainer/Margin/MainVBox (sep=0)
 - **EquipmentBar**: PanelContainer，监听 `Player.equipment_changed` + `Player.skill_added` + `Player.skill_removed` 信号自动刷新。`setup(player, hud)` 绑定当前玩家。`set_skill_tray(tray)` 注入外部技能栏容器。DiscardZone 拖拽管理。
 - **EquipmentSlot**: 紧凑方框（60×56），名称居中显示。`@export slot_type` + `@export is_collection_slot`。Godot 原生拖拽。后续可替换为小图标。
 - **SkillSlot** (`skill_slot.gd`): 圆形技能槽（56×56），放在 BottomVBox/SkillRow/SkillTray 中（而非 EquipmentBar 内）。EquipmentBar 通过外部注入的 `_skill_tray` 引用管理技能槽的增删刷。
-- **拖拽规则**：装备→收藏品（仅收藏品）触发 `MoveEquipmentToCollection`；收藏品→装备（仅 Weapon/Armor 类型匹配）触发 `EquipFromCollection`；装备→DiscardZone 触发 `UnequipAction`。
+- **拖拽规则**：装备→收藏品（仅收藏品）触发 `MoveEquipmentToCollection`；收藏品→装备（仅 Weapon/Armor 类型匹配）触发 `EquipFromCollection`；装备→DiscardZone 触发 `UnequipAction`；收藏品→收藏品触发 `_swap_collection_slots`（支持互换 + 空槽位移动）。
 - **EquipmentSlot export 属性必须在 tscn 中显式设置**：ArmorSlot `slot_type=1`，ElementSlot `slot_type=2`，CollectionSlot0-2 `slot_type=3, is_collection_slot=true`。WeaponSlot 默认值已正确（slot_type=0）。
 - `_on_slot_drop` 传递 `card: CardData`，Action 按 `card_identity` 查找指定收藏品（不再取第一个）。
 - `_show_skill_detail(skill)` / `_clear_detail()` — HudBattle 中显示/清空技能详情。
@@ -637,7 +749,7 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 
 ---
 
-## Refactoring Status (2026-06-24)
+## Refactoring Status (2026-06-25)
 
 核心重构已完成。已解决的历史违规见 git log。
 
@@ -648,15 +760,19 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 - 新增 dialogue_manager v3.10.1、vfx_library v1.0.0 插件
 - 角色精灵从 5 张扩展到 50 张（来自 mlpvector.club），放在 `assets/raw_character/mlp_vector_club/`
 - Godot 升级到 4.7
+- **攻击距离系统**：Player.attack_range 字段 + weapon.on_equip 写入 + RangeCheck 节点 + UseCard 按卡牌属性路由
+- **技能系统重构**：UseSkill 节点统一主动技能入口 + SkillData.get_action_node() + SunburstCristallShine.on_attach 创建节点
+- **法杖武器牌**：attack_range=2 + 可开关被动「魔力灌注」（点击切换攻击牌魔法转化）
+- **玩家信息面板**：显示物攻/法攻/心攻 + 攻击距离
 
 剩余未解决：
 
 | 文件 | 事项 | 说明 |
 |------|------|------|
 | normalcard/effect_database.json + recovery_database.json | 51 张 Effect 牌 + 10 张 Recovery 牌 | 占位空壳，无实际 execute/resolve 逻辑 |
-| cardpile/hudbattle_pile/drawpile_database.json | 仅 19 张（含 3 张事件触发牌） | 规则要求 148 张摸牌堆，需扩充 |
+| cardpile/hudbattle_pile/drawpile_database.json | 47 张（含 3 事件触发牌、法杖、派对大炮、宝石等） | 规则要求 148 张摸牌堆，需扩充 |
 | `EquipmentBar._swap_equipment` | 同类型拖拽交换占位 | 场景中每种槽只有 1 个，此路径暂不可达 |
-| 攻击距离校验 | 未实现 | BaseWeapon.attack_range 存在但 UseCard 不检查。unicorn_magic_reach 技能提供了 attack_range_bonus meta |
+| 收藏品栏位拖拽 | 已实现 | `_swap_collection_slots()` 支持收藏品栏位间互换 + 空槽位移动 |
 | 事件系统 HUD | 未实现 | 事件牌堆/弃牌堆 sprite、全局效果面板 UI |
 | 天马角色 | 未实装 | pegasus_freedom 技能已就绪，character_database 中暂无天马角色 |
 | Recovery 牌实现 | 空壳 | 10 张 Recovery 牌的 execute/resolve 为占位 |

@@ -16,6 +16,7 @@ enum EquipmentSlotType { Weapon, Armor, Element, Collection }
     set(v):
         armor = clampi(v, 0, 4)
 @export var speed:int = 1
+@export var attack_range: int = 1
 @export var species:Species
 @export var living_state:LivingState = LivingState.Alive
 @export var turn_stage = PlayerState.Wait
@@ -125,6 +126,8 @@ func is_collection_item(card_identity: String) -> bool:
 ## 即栏位中是否存在 is_collection_item 为 true 的卡牌。
 func is_slot_occupied_by_collection(slot: EquipmentSlotType) -> bool:
     for cd in get_equipment_in_slot(slot):
+        if cd == null:
+            continue
         if is_collection_item(cd.identity):
             return true
     return false

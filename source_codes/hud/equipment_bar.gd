@@ -62,7 +62,6 @@ func _connect_slot_signals() -> void:
         _collection_slot0, _collection_slot1, _collection_slot2,
     ]
     for slot in slots:
-        # 先断开旧连接（防止切换玩家后重复）
         if slot.card_dropped.is_connected(_on_slot_drop):
             slot.card_dropped.disconnect(_on_slot_drop)
         if slot.drag_started.is_connected(_on_drag_started):
@@ -71,7 +70,6 @@ func _connect_slot_signals() -> void:
             slot.drag_ended.disconnect(_on_drag_ended)
         if slot.card_hovered.is_connected(_on_slot_hovered):
             slot.card_hovered.disconnect(_on_slot_hovered)
-        # 重新连接
         slot.card_dropped.connect(_on_slot_drop)
         slot.drag_started.connect(_on_drag_started)
         slot.drag_ended.connect(_on_drag_ended)
@@ -193,8 +191,42 @@ func _on_slot_drop(src_slot: EquipmentSlot, dst_slot: EquipmentSlot, card: CardD
         _send_action("EquipFromCollection", {"slot": dst_slot.slot_type, "card_identity": card_identity})
         return
 
+    if src_is_collection and dst_is_collection:
+        _swap_collection_slots(src_slot, dst_slot)
+        return
+
     if not src_is_collection and not dst_is_collection:
         _swap_equipment(src_slot, dst_slot)
+
+
+## 交换两个收藏品栏位的卡牌
+func _swap_collection_slots(src_slot: EquipmentSlot, dst_slot: EquipmentSlot) -> void:
+    var coll: Array = _player.get_equipment_in_slot(Player.EquipmentSlotType.Collection)
+    var src_idx := _collection_slot_index(src_slot)
+    var dst_idx := _collection_slot_index(dst_slot)
+    if src_idx < 0 or dst_idx < 0 or src_idx >= coll.size():
+        return
+    # 目标槽为空：移到目标位置（数组扩展到目标索引）
+    if dst_idx >= coll.size():
+        var item = coll[src_idx]
+        coll.remove_at(src_idx)
+        while coll.size() < dst_idx:
+            coll.append(null)   # 占位（不会被 render 显示，因为在 size 之外）
+        coll.append(item)
+    else:
+        # 目标槽有东西：交换
+        var tmp = coll[src_idx]
+        coll[src_idx] = coll[dst_idx]
+        coll[dst_idx] = tmp
+    _player.equipment[Player.EquipmentSlotType.Collection] = coll
+    _player.equipment_changed.emit(Player.EquipmentSlotType.Collection)
+
+
+func _collection_slot_index(slot: EquipmentSlot) -> int:
+    if slot == _collection_slot0: return 0
+    if slot == _collection_slot1: return 1
+    if slot == _collection_slot2: return 2
+    return -1
 
 
 # ---- ActionTree 通信 ----
@@ -209,7 +241,7 @@ func _send_action(action_name: String, params: Dictionary) -> void:
 
 
 func _get_or_create_action(action_name: String) -> Node:
-    var atree: ActionTree = _player.get_node_or_null("ActionTree")
+    var atree: ActionTree = _player.get_node_or_null("ActionTree") as ActionTree
     if atree == null:
         return null
     var node := atree.get_node_or_null(action_name)
@@ -237,7 +269,6 @@ func _on_skill_removed(_skill: SkillData) -> void:
 
 
 func _refresh_skills() -> void:
-    # 清理旧 SkillSlot
     for slot in _skill_slots:
         if is_instance_valid(slot):
             slot.queue_free()
@@ -246,7 +277,6 @@ func _refresh_skills() -> void:
     if _player == null or _skill_tray == null:
         return
 
-    # 为每个技能创建 SkillSlot
     for skill in _player.get_skills():
         var slot: SkillSlot = _SkillSlot.new()
         _skill_tray.add_child(slot)
@@ -268,12 +298,9 @@ func _on_skill_unhovered() -> void:
 
 
 func _on_skill_clicked(skill: SkillData) -> void:
-    # 主动技能点击：转发给 HudBattle 处理
     if _hud and _hud.has_method("_on_skill_activated"):
         _hud._on_skill_activated(skill)
 
 
 func _swap_equipment(a: EquipmentSlot, b: EquipmentSlot) -> void:
-    # 同类型交换仅在存在多个同类型槽位时可达（当前每种槽只有 1 个）
-    # 保留此方法作为占位，实际交换应通过 ActionTree
     pass

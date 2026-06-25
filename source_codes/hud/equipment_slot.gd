@@ -176,9 +176,9 @@ func _can_drop_data(_pos: Vector2, data: Variant) -> bool:
 
     var src_is_collection: bool = data.get("is_collection", false)
 
-    # Collection 槽：接受来自功能槽的 drop（收藏品从功能槽移回 Collection）
+    # Collection 槽：接受来自功能槽或另一个 Collection 槽的 drop
     if is_collection_slot:
-        return not src_is_collection
+        return true
 
     # 功能槽接受来自 Collection 槽的收藏品 drop
     # 规则：只有类型匹配的收藏品才能装入对应功能槽（Weapon→武器栏, Armor→防具栏）

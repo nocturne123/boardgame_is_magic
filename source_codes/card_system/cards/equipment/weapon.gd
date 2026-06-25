@@ -11,3 +11,11 @@ func _init() -> void:
 
 func get_equipment_slot_type() -> Player.EquipmentSlotType:
     return Player.EquipmentSlotType.Weapon
+
+func on_equip(player: Player, _slot: int) -> void:
+    player.attack_range = attack_range
+    super.on_equip(player, _slot)
+
+func on_unequip(player: Player, _slot: int) -> void:
+    player.attack_range = 1
+    super.on_unequip(player, _slot)

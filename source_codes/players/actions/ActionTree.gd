@@ -64,6 +64,7 @@ func make_default_chain():
     roll_dice_entry.next_action = roll_dice_execute
     # 恢复链：HealEntry → HealExecute（默认到此结束）
     heal_entry.next_action = heal_execute
+    # UseCard / UseSkill 的链条由各自的 inform_next_action 动态路由，不设默认链
 
 func _ready():
     make_default_chain()

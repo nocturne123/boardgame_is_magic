@@ -17,6 +17,11 @@ func take_action() -> void:
         # fallback：攻击牌走 resolve → Damage，通过目标 ActionTree 的伤害链
         var result: Variant = card.resolve(player, target)
         if result is Damage:
+            # 法杖魔力灌注：攻击牌转化为魔法攻击
+            if player.has_meta("equip_staff_magic") and player.get_meta("equip_staff_magic"):
+                if card is BaseAttack:
+                    (result as Damage).type = Damage.DamageType.Magic
+                    (result as Damage).num = int(player.magic_ability)
             # 蛮力加成
             if strength_bonus > 0:
                 (result as Damage).num += strength_bonus
@@ -39,6 +44,14 @@ func take_action() -> void:
     # 攻击牌递减攻击次数
     if card.type == "Attack":
         player.attack_chance_in_turn -= 1
+        # 派对大炮：攻击后恢复判定
+        if player.has_meta("party_cannon_enabled") and player.get_meta("party_cannon_enabled"):
+            var tree := player.get_node_or_null("ActionTree")
+            if tree:
+                var recovery := tree.get_node_or_null("PartyCannonRecovery")
+                if recovery:
+                    recovery.player = player
+                    next_action = recovery
 
 func reset_property() -> void:
     card = null

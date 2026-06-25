@@ -17,6 +17,7 @@ enum SkillType { Active, Passive }
 @export var cooldown: int = 0
 @export var max_uses_per_turn: int = 0
 @export var needs_target: bool = false
+@export var needs_card_discard: bool = false
 
 ## 失效状态：技能仍在 player.skills 中，但链条恢复默认，不生效。
 var _disabled: bool = false
@@ -62,6 +63,12 @@ func on_detach(_player: Player) -> void:
         if is_instance_valid(node):
             node.queue_free()
     _inserted_nodes.clear()
+
+
+## 返回该技能对应的专属 action 节点（子类重写）。
+## UseSkill 通过此方法查找要触发的 action 节点，注入参数后执行。
+func get_action_node(_tree: ActionTree) -> BaseAction:
+    return null
 
 
 # ============================================================

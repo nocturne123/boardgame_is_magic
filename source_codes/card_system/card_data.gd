@@ -15,6 +15,11 @@ extends Resource
 ## 装备牌附带的技能 id 列表。装备时挂接到角色，卸下时移除。
 var skill_ids: Array[String] = []
 
+## 是否需要攻击距离校验（卡牌 JSON 中声明）。
+@export var needs_range_check: bool = false
+## 攻击距离（仅 needs_range_check=true 时有效。Attack 类型由武器+meta 动态计算）。
+@export var effective_range: int = 1
+
 func resolve(_source: Player, _target: Player) -> Variant:
     return null
 

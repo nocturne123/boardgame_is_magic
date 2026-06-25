@@ -79,6 +79,15 @@ func _get_card_json(p: Player, identity: String) -> Dictionary:
     return p.card_manager.get_card_data_by_identity(identity)
 
 
+func _get_effective_attack_range(p: Player) -> int:
+    var r := p.attack_range
+    r += p.get_meta("attack_range_bonus", 0)
+    var tm = p.get_meta("terrain_manager")
+    if tm:
+        r += tm.get_attack_range_mod(p)
+    return max(r, 1)
+
+
 func show_player(p: Player) -> void:
     if p == null:
         content_label.text = ""
@@ -94,6 +103,14 @@ func show_player(p: Player) -> void:
     lines.append("HP: [color=%s]%d / %d[/color]" % [hp_color, p.health, p.max_health])
 
     lines.append("护甲: %d    速度: %d" % [p.armor, p.speed])
+    # 攻击属性
+    lines.append("物攻: %d  法攻: %d  心攻: %d" % [p.physical_ability, p.magic_ability, p.mental_ability])
+    # 攻击距离（含武器+技能+地形修正）
+    var atk_range := _get_effective_attack_range(p)
+    var range_color := "#f0d060"
+    if atk_range > 1:
+        range_color = "#60f060"
+    lines.append("攻击距离: [color=%s]%d[/color]" % [range_color, atk_range])
     lines.append("物防: %d  法防: %d  心防: %d" % [p.physical_defence, p.magic_defence, p.mental_defence])
 
     var state_color := "#60f060"
@@ -128,9 +145,7 @@ func show_player(p: Player) -> void:
         var line: String = "  %s: %s" % [slot_name, ", ".join(names)]
         if slot == Player.EquipmentSlotType.Weapon:
             if arr.size() > 0:
-                var cd: CardData = arr[0] as CardData
-                var atk_range: int = cd.get("attack_range") if cd else 1
-                line += "  攻击范围: %d" % atk_range
+                line += "  范围: %d" % atk_range
         lines.append(line)
 
     content_label.text = "\n".join(lines)

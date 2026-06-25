@@ -22,6 +22,8 @@ func take_action() -> void:
     # 按 identity 查找指定收藏品；未指定时取第一个（向后兼容）
     var card_to_equip: CardData = null
     for cd in coll:
+        if cd == null:
+            continue
         if not player.is_collection_item(cd.identity):
             continue
         if card_identity.is_empty() or cd.identity == card_identity:

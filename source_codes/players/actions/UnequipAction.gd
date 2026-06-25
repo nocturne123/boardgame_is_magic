@@ -5,6 +5,7 @@ class_name UnequipAction extends BaseAction
 ## 若该栏的牌是收藏品 → 拒绝，发射 unequip_blocked 信号。
 
 var slot: int = Player.EquipmentSlotType.Weapon
+var _unequipped_name: String = ""
 
 signal unequip_blocked(reason: String)
 
@@ -21,18 +22,22 @@ func take_action() -> void:
             return
     var unequipped: CardData = player._remove_from_slot(slot as Player.EquipmentSlotType, 0)
     if unequipped != null:
+        _unequipped_name = unequipped.nice_name
         unequipped.on_unequip(player, slot)
         if player.card_manager:
             player.card_manager.receive_into_discard(unequipped)
 
 func reset_property() -> void:
     slot = Player.EquipmentSlotType.Weapon
+    _unequipped_name = ""
 
 
 func _get_action_info() -> String:
+    if _unequipped_name.is_empty():
+        return ""
     var slot_name := ""
     match slot:
         Player.EquipmentSlotType.Weapon:  slot_name = "武器"
         Player.EquipmentSlotType.Armor:   slot_name = "防具"
         Player.EquipmentSlotType.Element: slot_name = "元素"
-    return "%s 卸下了 %s 栏的装备" % [player.player_name, slot_name]
+    return "%s 卸下了 %s [%s]" % [player.player_name, slot_name, _unequipped_name]

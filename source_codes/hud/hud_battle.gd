@@ -61,9 +61,8 @@ var _move_mode: bool = false
 var _move_source: Player = null
 var _move_range: Array[Vector2i] = []
 
-# ---- 水晶洗礼技能目标选择 ----
-var _crystal_shine_mode: bool = false
-var _crystal_shine_skill: SkillData = null
+# ---- 主动技能目标选择 ----
+var _active_skill: SkillData = null
 
 
 # ============================================================
@@ -121,12 +120,12 @@ func _deferred_start() -> void:
 func _setup_card_manager() -> void:
     card_mgr.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     card_mgr._normal_paths = [
-        "res://source_codes/data/normalcard/baseplay_database.json",
-        "res://source_codes/data/normalcard/weapon_database.json",
-        "res://source_codes/data/normalcard/armor_database.json",
-        "res://source_codes/data/normalcard/element_database.json",
-        "res://source_codes/data/normalcard/effect_database.json",
-        "res://source_codes/data/normalcard/recovery_database.json",
+        "res://source_codes/data/normalcard/baseplay/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon/weapon_database.json",
+        "res://source_codes/data/normalcard/armor/armor_database.json",
+        "res://source_codes/data/normalcard/element/element_database.json",
+        "res://source_codes/data/normalcard/effect/effect_database.json",
+        "res://source_codes/data/normalcard/recovery/recovery_database.json",
     ]
     card_mgr._bonus_paths = [
         "res://source_codes/data/bonuscard/bonus_weapon_database.json",
@@ -145,6 +144,9 @@ func _setup_skill_manager() -> void:
         "res://source_codes/data/character/unicorn/unicorn_skill_database.json",
         "res://source_codes/data/character/pegasus/pegasus_skill_database.json",
         "res://source_codes/data/character/alicorn/alicorn_skill_database.json",
+        "res://source_codes/data/normalcard/weapon/weapon_skill_database.json",
+        "res://source_codes/data/normalcard/armor/armor_skill_database.json",
+        "res://source_codes/data/normalcard/element/element_skill_database.json",
     ])
 
 
@@ -796,12 +798,12 @@ func _on_player_clicked(p: Player) -> void:
     left_panel.show_player(p)
     var controller := turn_mgr.get_current_player()
 
-    # --- 水晶洗礼技能目标选择 ---
-    if _crystal_shine_mode:
-        if p == controller:
-            _log("[color=#888]不能对自己使用水晶洗礼[/color]")
+    # --- 主动技能目标选择 ---
+    if _active_skill != null:
+        if _active_skill.id == "sunburst_cristall_shine" and p == controller:
+            _log("[color=#888]不能对自己使用此技能[/color]")
             return
-        _execute_crystal_shine(p)
+        _execute_active_skill(_active_skill, p)
         return
 
     # --- 移动模式中：点击移动源角色 → 选择目的地或取消 ---
@@ -858,13 +860,60 @@ func _on_discard_pile_clicked(_ps: CardPileSprite) -> void:
 # ============================================================
 
 func _on_skill_activated(skill: SkillData) -> void:
-    if skill == null or skill.is_disabled():
+    if skill == null:
         return
-    match skill.id:
-        "sunburst_cristall_shine":
-            _activate_crystal_shine(skill)
-        "pegasus_freedom":
-            _toggle_terrain_immune(skill)
+
+    # 自由翱翔：独立 toggle（不改）
+    if skill.id == "pegasus_freedom":
+        _toggle_terrain_immune(skill)
+        return
+
+    # 主动技能（需选目标或弃牌）
+    if skill.needs_target or skill.needs_card_discard:
+        if skill.is_disabled():
+            return
+        # 需要弃牌代价的前置检查
+        if skill.needs_card_discard:
+            if not selected_card or not selected_card.card_data:
+                _log("[color=#f0a040]请先选择一张手牌作为代价[/color]")
+                return
+        # 等待选择目标
+        _active_skill = skill
+        _log("[color=#ff6ec7]%s 已激活：请点击目标[/color]" % skill.nice_name)
+        return
+
+    # 被动技能：toggle 启用/禁用（法杖魔力灌注等）
+    var controller := turn_mgr.get_current_player()
+    if controller:
+        var new_state := not skill.is_disabled()
+        skill.set_disabled(new_state, controller)
+        var status := "[color=#f06060]关闭[/color]" if new_state else "[color=#60f060]开启[/color]"
+        _log("%s %s [%s]" % [controller.player_name, status, skill.nice_name])
+        _update_all_ui()
+
+
+func _execute_active_skill(skill: SkillData, target: Player) -> void:
+    var controller := turn_mgr.get_current_player()
+    if controller == null:
+        _active_skill = null
+        return
+    var tree: Node = controller.get_node_or_null("ActionTree")
+    if tree == null:
+        _active_skill = null
+        return
+    var use_skill := tree.get_node_or_null("UseSkill")
+    if use_skill == null:
+        _active_skill = null
+        return
+    use_skill.player = controller
+    use_skill.skill = skill
+    use_skill.target = target
+    if skill.needs_card_discard and selected_card:
+        use_skill.card_to_discard = selected_card.card_data
+    tree.chain_of_actions(use_skill as BaseAction)
+    _active_skill = null
+    _reset_selection()
+    _update_all_ui()
 
 
 func _toggle_terrain_immune(skill: SkillData) -> void:
@@ -875,67 +924,12 @@ func _toggle_terrain_immune(skill: SkillData) -> void:
     skill.set_terrain_enabled(controller, new_state)
     if new_state:
         _log("[color=#88ccff]%s 选择受到地形效果[/color]" % controller.player_name)
-        # 重新应用当前地形效果
         terrain_mgr.on_player_moved(controller, controller.map_position)
     else:
         _log("[color=#88ccff]%s 选择免疫地形效果[/color]" % controller.player_name)
-        # 清除地形 meta
         controller.remove_meta("terrain_attack_range_mod")
         controller.remove_meta("terrain_blocks_recovery")
     _update_all_ui()
-
-
-func _activate_crystal_shine(skill: SkillData) -> void:
-    var controller := turn_mgr.get_current_player()
-    if controller == null:
-        return
-    # 必须先选一张手牌作为弃置代价
-    if not selected_card or not selected_card.card_data:
-        _log("[color=#f0a040]请先选择一张手牌作为水晶洗礼的代价[/color]")
-        return
-    if controller.get_hand_size() == 0:
-        _log("[color=#f06060]没有手牌可弃置[/color]")
-        return
-    _crystal_shine_mode = true
-    _crystal_shine_skill = skill
-    _log("[color=#ff6ec7]水晶洗礼已激活：点击目标角色施加印记[/color]")
-
-
-func _execute_crystal_shine(target: Player) -> void:
-    var controller := turn_mgr.get_current_player()
-    if controller == null or selected_card == null:
-        _cancel_crystal_shine()
-        return
-    var card_data: CardData = selected_card.card_data
-    # 获取或创建 CrystalShineExecute 动作节点
-    var tree: Node = controller.get_node_or_null("ActionTree")
-    if tree == null:
-        _cancel_crystal_shine()
-        return
-    var action := tree.get_node_or_null("CrystalShineExecute")
-    if action == null:
-        var scr := load("res://source_codes/skills/actions/crystal_shine_execute.gd")
-        if scr == null:
-            _cancel_crystal_shine()
-            return
-        action = scr.new()
-        action.name = "CrystalShineExecute"
-        tree.add_child(action)
-    # 设置参数并执行
-    action.player = controller
-    action.target = target
-    action.card_to_discard = card_data
-    action.skill = _crystal_shine_skill
-    tree.chain_of_actions(action as BaseAction)
-    _log("%s 弃置 [%s] 对 %s 施加水晶洗礼印记" % [controller.player_name, card_data.nice_name, target.player_name])
-    _cancel_crystal_shine()
-    _reset_selection()
-    _update_all_ui()
-
-
-func _cancel_crystal_shine() -> void:
-    _crystal_shine_mode = false
-    _crystal_shine_skill = null
 
 
 func _on_end_turn_pressed() -> void:

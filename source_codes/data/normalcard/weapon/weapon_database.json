@@ -1,0 +1,34 @@
+[
+  {
+    "nice_name": "花束",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/花束.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/equipment/weapon.gd",
+    "type": "Weapon",
+    "identity": "花束",
+    "description": "",
+    "attack_range": 1
+  },
+  {
+    "nice_name": "法杖",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/法杖.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/equipment/weapon.gd",
+    "type": "Weapon",
+    "identity": "法杖",
+    "description": "攻击范围 2。所有攻击牌转化为魔法攻击，以魔法能力结算伤害。可开关。",
+    "attack_range": 2,
+    "skill_ids": ["staff_magic_conversion"]
+  },
+  {
+    "nice_name": "派对大炮",
+    "texture_path": "res://assets/card_library/playable/tools/list/base_pack/派对大炮.png",
+    "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
+    "resource_script_path": "res://source_codes/card_system/cards/equipment/weapon.gd",
+    "type": "Weapon",
+    "identity": "派对大炮",
+    "description": "攻击范围 2。攻击后 D6≥3 则恢复 1 点体力。可开关。",
+    "attack_range": 2,
+    "skill_ids": ["party_cannon_recovery"]
+  }
+]
