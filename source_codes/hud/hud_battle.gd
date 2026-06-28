@@ -63,6 +63,7 @@ var _move_range: Array[Vector2i] = []
 
 # ---- 主动技能目标选择 ----
 var _active_skill: SkillData = null
+var _magic_prop_card: CardData = null  # 魔术道具选中的弃牌
 
 
 # ============================================================
@@ -173,8 +174,8 @@ func _setup_players() -> void:
     ]
     for path in char_paths:
         char_db.append_array(_load_json(path))
-    var char_a: Dictionary = _find_char_by_name(char_db, "灰琪")
-    var char_b: Dictionary = _find_char_by_name(char_db, "日光耀耀")
+    var char_a: Dictionary = _find_char_by_name(char_db, "特丽克西")
+    var char_b: Dictionary = _find_char_by_name(char_db, "灰琪")
 
     _apply_char_data(player_a, char_a)
     _apply_char_data(player_b, char_b)
@@ -205,13 +206,13 @@ func _setup_players() -> void:
 
 ## 设置地形：在地图上选两个格子作为森林和雪地
 func _setup_terrain() -> void:
-    # 灰琪初始在 cube(0,0,0)，日光耀耀在 cube(2,0,-2)
+    # 特丽克西初始在 cube(0,0,0)，灰琪在 cube(2,0,-2)
     # 选两个相邻可达的格子作为地形
     # 森林：cube(1,0,-1) — 两人之间的格子
     var forest_cell: Vector2i = map_node.cube_to_map(Vector3i(1, 0, -1))
     var forest_effect = preload("res://source_codes/terrain/forest_terrain.gd").new()
     terrain_mgr.add_terrain(forest_cell, forest_effect)
-    # 雪地：cube(-1,0,1) — 灰琪旁边
+    # 雪地：cube(-1,0,1) — 特丽克西旁边
     var snow_cell: Vector2i = map_node.cube_to_map(Vector3i(-1, 0, 1))
     var snow_effect = preload("res://source_codes/terrain/snow_terrain.gd").new()
     terrain_mgr.add_terrain(snow_cell, snow_effect)
@@ -235,6 +236,12 @@ func _apply_terrain_visual(data: Dictionary) -> void:
 
 func _apply_char_data(p: Player, data: Dictionary) -> void:
     p.player_name = data.get("name", "")
+    # 设置角色精灵
+    var tex_path: String = data.get("texture_path", "")
+    if not tex_path.is_empty():
+        var tex := load(tex_path) as Texture2D
+        if tex:
+            p.texture = tex
     p.max_health = int(data.get("max_health", 10))
     p.base_health = p.max_health
     p.health = p.max_health
@@ -346,6 +353,10 @@ func _setup_turn_system() -> void:
 
 func _start_game() -> void:
     turn_mgr.start_game(0)
+    # 游戏启动后连接手牌变化信号
+    for p in players:
+        if not p.hand_updated.is_connected(_on_hand_updated):
+            p.hand_updated.connect(_on_hand_updated)
     _update_all_ui()
 
 
@@ -445,13 +456,16 @@ func _input(event: InputEvent) -> void:
 
 func _on_turn_started(controller: Player) -> void:
     if controller == player_b:
-        # 日光耀耀是木桩，自动跳过回合
+        # 灰琪是木桩，自动跳过回合
         turn_mgr.end_current_turn()
         return
     # TurnManager 已触发 TurnStart→DrawCard 链，抽牌由链自动完成
     _log("%s 的回合开始，抽 %d 张牌" % [controller.player_name, controller.draw_stage_card_number])
     _update_all_ui()
 
+
+func _on_hand_updated() -> void:
+    _update_all_ui()
 
 func _on_turn_ended(_controller: Player) -> void:
     _update_all_ui()
@@ -605,6 +619,8 @@ func _on_chain_paused(action: BaseAction) -> void:
             _show_prospect_dialog(action)
         "res://source_codes/skills/actions/calm_roll_execute.gd":
             _show_dice_choice_dialog(action)
+        "res://source_codes/skills/actions/trixie_magic_prop_action.gd":
+            _show_attack_type_dialog(action)
         _:
             _log("[color=#888]未知 chain 暂停: %s[/color]" % script_path)
             var tree = action.get_parent()
@@ -868,6 +884,11 @@ func _on_skill_activated(skill: SkillData) -> void:
         _toggle_terrain_immune(skill)
         return
 
+    # 魔术道具：弹出选牌对话框（独立于 needs_target/needs_card_discard）
+    if skill.id == "trixie_magic_prop":
+        _show_magic_prop_card_dialog(skill)
+        return
+
     # 主动技能（需选目标或弃牌）
     if skill.needs_target or skill.needs_card_discard:
         if skill.is_disabled():
@@ -908,7 +929,11 @@ func _execute_active_skill(skill: SkillData, target: Player) -> void:
     use_skill.player = controller
     use_skill.skill = skill
     use_skill.target = target
-    if skill.needs_card_discard and selected_card:
+    if _magic_prop_card:
+        use_skill.card_to_discard = _magic_prop_card
+        _magic_prop_card = null
+    elif selected_card:
+        use_skill.card_to_discard = selected_card.card_data
         use_skill.card_to_discard = selected_card.card_data
     tree.chain_of_actions(use_skill as BaseAction)
     _active_skill = null
@@ -1000,6 +1025,8 @@ func _on_move_requested(target_cell: Vector2i) -> void:
 
 
 func _reset_selection() -> void:
+    _active_skill = null
+    _magic_prop_card = null
     if selected_card:
         selected_card.set_selected(false)
         hand_fan.return_card(selected_card)
@@ -1078,8 +1105,9 @@ func _unhandled_input(event: InputEvent) -> void:
         if _move_mode:
             _exit_move_mode()
             _update_all_ui()
-        elif selected_card:
+        elif selected_card or _active_skill or _magic_prop_card:
             _reset_selection()
+            _update_all_ui()
             card_arrow.deactivate()
             card_detail_label.text = ""
         left_panel.clear()
@@ -1195,3 +1223,92 @@ func _show_skill_detail(skill: SkillData) -> void:
 
 func _clear_detail() -> void:
     card_detail_label.text = ""
+
+
+func _show_attack_type_dialog(action: BaseAction) -> void:
+    var overlay := _create_dialog_overlay("魔术道具", "选择攻击类型:")
+    var tree = action.get_parent()
+    _add_dialog_button(overlay, "物理", func():
+        action.chosen_damage_type = Damage.DamageType.Physical
+        overlay.queue_free()
+        if tree: tree.resume_chain()
+        _update_all_ui()
+    )
+    _add_dialog_button(overlay, "法术", func():
+        action.chosen_damage_type = Damage.DamageType.Magic
+        overlay.queue_free()
+        if tree: tree.resume_chain()
+        _update_all_ui()
+    )
+    _add_dialog_button(overlay, "心理", func():
+        action.chosen_damage_type = Damage.DamageType.Mental
+        overlay.queue_free()
+        if tree: tree.resume_chain()
+        _update_all_ui()
+    )
+
+
+func _show_magic_prop_card_dialog(skill: SkillData) -> void:
+    var controller := turn_mgr.get_current_player()
+    if controller == null:
+        return
+    var hand: Array = controller.get_hand()
+    var valid_cards: Array[CardData] = []
+    for cd in hand:
+        if cd.type in ["Weapon", "Armor", "Effect"]:
+            valid_cards.append(cd)
+    if valid_cards.is_empty():
+        _log("[color=#f06060]没有可弃置的武器、防具或效果牌[/color]")
+        return
+
+    var overlay := _create_dialog_overlay("魔术道具", "选择要弃置的卡牌:")
+    var hbox := HBoxContainer.new()
+    hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+    hbox.add_theme_constant_override("separation", 8)
+    hbox.custom_minimum_size = Vector2(300, 0)
+    for cd in valid_cards:
+        var btn := Button.new()
+        btn.text = cd.nice_name
+        btn.custom_minimum_size = Vector2(70, 36)
+
+        if cd.type in ["Weapon", "Armor"]:
+            btn.pressed.connect(func():
+                if controller.attack_chance_in_turn <= 0:
+                    _log("[color=#f06060]攻击次数不足，无法使用魔术道具[/color]")
+                    overlay.queue_free()
+                    _update_all_ui()
+                    return
+                # 暂存卡牌，不立即弃置——攻击链成功后由 MagicPropDiscard 弃置
+                _magic_prop_card = cd
+                _active_skill = skill
+                overlay.queue_free()
+                _log("[color=#ff6ec7]暂存 [%s]，请点击目标[/color]" % cd.nice_name)
+                _update_all_ui()
+            )
+        else:
+            btn.pressed.connect(func():
+                controller.remove_card_from_hand(cd)
+                if controller.card_manager:
+                    controller.card_manager.receive_into_discard(cd)
+                controller.move_chance_in_turn += 1
+                overlay.queue_free()
+                _log("[color=#60f060]弃置 [%s]，增加 1 次移动机会[/color]" % cd.nice_name)
+                _update_all_ui()
+            )
+        hbox.add_child(btn)
+    _add_to_dialog(overlay, hbox)
+
+    var cancel_btn := Button.new()
+    cancel_btn.text = "取消"
+    cancel_btn.custom_minimum_size = Vector2(60, 30)
+    cancel_btn.pressed.connect(func():
+        overlay.queue_free()
+        _update_all_ui()
+    )
+    _add_to_dialog(overlay, cancel_btn)
+
+
+func _add_to_dialog(overlay: PanelContainer, child: Control) -> void:
+    var vbox: VBoxContainer = overlay.get_node_or_null("VBox") as VBoxContainer
+    if vbox:
+        vbox.add_child(child)

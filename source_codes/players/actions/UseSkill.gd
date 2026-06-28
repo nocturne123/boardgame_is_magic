@@ -22,7 +22,7 @@ func inform_next_action() -> void:
 
     action.player = player
     action.target = target
-    if skill.needs_card_discard and card_to_discard:
+    if card_to_discard:
         action.card_to_discard = card_to_discard
     # 回传 skill 引用供 CrystalShineExecute 等使用
     if action.get("skill") != null:

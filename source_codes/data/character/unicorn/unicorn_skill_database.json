@@ -11,5 +11,32 @@
     "max_uses_per_turn": 0,
     "needs_target": true,
     "script_path": "res://source_codes/skills/character/sunburst_cristall_shine.gd"
+  },
+  {
+    "id": "trixie_magic_prop",
+    "nice_name": "魔术道具",
+    "category": "Character",
+    "skill_type": "Active",
+    "description": "弃置一张武器/防具牌视为打出指定类型攻击牌；弃置一张效果牌增加一次移动机会。",
+    "ignore_distance": true,
+    "range": -1,
+    "cooldown": 0,
+    "max_uses_per_turn": 0,
+    "needs_target": false,
+    "needs_card_discard": false,
+    "script_path": "res://source_codes/skills/character/trixie_magic_prop.gd"
+  },
+  {
+    "id": "trixie_fragile_pride",
+    "nice_name": "易碎骄傲",
+    "category": "Character",
+    "skill_type": "Passive",
+    "description": "当你的 D6 判定失败时，你受到 1 点心理伤害。",
+    "ignore_distance": false,
+    "range": -1,
+    "cooldown": 0,
+    "max_uses_per_turn": 0,
+    "needs_target": false,
+    "script_path": "res://source_codes/skills/character/trixie_fragile_pride.gd"
   }
 ]

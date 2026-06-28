@@ -500,7 +500,7 @@ UseSkill（水晶洗礼）:
 魔力灌注:  meta "equip_staff_magic"       → UseBaseplay.take_action() 读取
 ```
 
-**八个已实现的技能**:
+**十个已实现的技能**:
 
 | 技能 | 类型 | 来源 | 链条修改方式 |
 |------|------|------|-------------|
@@ -512,6 +512,8 @@ UseSkill（水晶洗礼）:
 | 水晶洗礼 | 主动 | 日光耀耀角色 | 弃手牌对目标 add_mark。首次标记时在目标 ActionTree 上动态插入 CrystalMarkTrigger 到 HealExecute 之后。技能失效/on_detach 时恢复链条+清除所有印记 |
 | 魔力灌注 | 被动（可开关） | 法杖装备 | 点击技能槽 toggle。启用时设 meta `equip_staff_magic`，UseBaseplay 读取后将攻击牌转为魔法伤害（type=Magic，num=magic_ability） |
 | 派对时间 | 被动（可开关） | 派对大炮装备 | 动态路由：UseBaseplay→PartyCannonRecovery→骰子链→PartyCannonResult。PartyCannonRecovery 临时挂 Result 到骰子链末端，Result 执行完后恢复骰子链原状。D6≥3 恢复 1 点体力 |
+| 魔术道具 | 主动 | 特丽克西角色 | 点技能→弹窗选牌（武器/防具/效果）。武器/防具：暂存卡牌→选攻击类型→创虚拟 BaseAttack 走 UseCard 全链→MagicPropDiscard 弃牌（generation 防残留）。效果：立即弃牌+移动+1 |
+| 易碎骄傲 | 被动 | 特丽克西角色 | 骰子链末端插入 DiceFailureTrigger，D6 结果<3 则自伤 1 点心理伤害
 
 **SkillManager** (`skills/skill_manager.gd`) — 节点，放在 `logic` 下:
 - 加载 `skill_database.json`
@@ -749,21 +751,24 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 
 ---
 
-## Refactoring Status (2026-06-25)
-
-核心重构已完成。已解决的历史违规见 git log。
+## Refactoring Status (2026-06-28)
 
 **本次更新已完成**：
-- 数据库拆分：`card_database.json` + `character_database.json` + `skill_database.json` + `event_database.json` + `normal_drawpile.json` 从单文件拆为按种族/类型的子目录结构
-- CardManager 改用 `_normal_paths` + `_bonus_paths` 数组加载多目录
-- hexagon_tilemaplayer UID 修复（3 个 .gd 文件）、demo 禁用、zip 删除
-- 新增 dialogue_manager v3.10.1、vfx_library v1.0.0 插件
-- 角色精灵从 5 张扩展到 50 张（来自 mlpvector.club），放在 `assets/raw_character/mlp_vector_club/`
-- Godot 升级到 4.7
-- **攻击距离系统**：Player.attack_range 字段 + weapon.on_equip 写入 + RangeCheck 节点 + UseCard 按卡牌属性路由
-- **技能系统重构**：UseSkill 节点统一主动技能入口 + SkillData.get_action_node() + SunburstCristallShine.on_attach 创建节点
-- **法杖武器牌**：attack_range=2 + 可开关被动「魔力灌注」（点击切换攻击牌魔法转化）
-- **玩家信息面板**：显示物攻/法攻/心攻 + 攻击距离
+- 数据库拆分 + CardManager 多路径加载
+- hexagon_tilemaplayer UID 修复 + Godot 升级 4.7
+- 角色精灵 50 张（来自 mlpvector.club）
+- **攻击距离系统**：Player.attack_range + RangeCheck 节点
+- **技能系统重构**：UseSkill 节点 + SkillData.get_action_node()
+- **法杖武器牌**：attack_range=2 + 可开关「魔力灌注」
+- **派对大炮武器牌**：双节点拆分 + 骰子链临时挂接恢复
+- **特丽克西角色**：Unicorn 物1/法2/心2，收藏品法杖/帽子/护身符
+- **魔术道具技能**：点技能→弹窗选牌→虚拟 BaseAttack 走全链 + MagicPropDiscard（generation 防残留）
+- **易碎骄傲技能**：DiceFailureTrigger 骰子链末端，<3 自伤 1 心理
+- **玩家信息面板**：物攻/法攻/心攻 + 攻击距离
+- **技能 HUD 选牌对话框**：筛选武器/防具/效果 + 取消 + 攻击次数检查
+- **角色精灵 JSON 化**：texture_path 字段驱动
+- **hand_updated 信号连接**：手牌变化实时刷 UI
+- **测试**：+5 技能测试（魔术道具/易碎骄傲/派对大炮/法杖/DiceFailureTrigger）
 
 剩余未解决：
 

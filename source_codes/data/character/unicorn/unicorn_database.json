@@ -2,6 +2,7 @@
   {
     "name": "日光耀耀",
     "species": "Unicorn",
+    "texture_path": "res://assets/raw_character/mlp_vector_club/Sunburst.png",
     "max_health": 13,
     "speed": 1,
     "physical_ability": 2,
@@ -21,6 +22,35 @@
     ],
     "character_skill_ids": [
       "sunburst_cristall_shine"
+    ],
+    "species_skill_ids": [
+      "unicorn_magic_reach"
+    ]
+  },
+  {
+    "name": "特丽克西",
+    "species": "Unicorn",
+    "texture_path": "res://assets/raw_character/mlp_vector_club/Trixie Lulamoon.png",
+    "max_health": 13,
+    "speed": 1,
+    "physical_ability": 1,
+    "magic_ability": 2,
+    "mental_ability": 2,
+    "physical_defence": 0,
+    "magic_defence": 0,
+    "mental_defence": 0,
+    "move_chance": 1,
+    "attack_chance": 1,
+    "draw_stage_card_number": 2,
+    "start_game_draw": 4,
+    "collection_item_ids": [
+      "法杖",
+      "帽子",
+      "护身符"
+    ],
+    "character_skill_ids": [
+      "trixie_magic_prop",
+      "trixie_fragile_pride"
     ],
     "species_skill_ids": [
       "unicorn_magic_reach"

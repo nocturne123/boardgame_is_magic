@@ -2,6 +2,7 @@
   {
     "name": "灰琪",
     "species": "EarthPony",
+    "texture_path": "res://assets/raw_character/mlp_vector_club/Maud Pie.png",
     "max_health": 14,
     "speed": 1,
     "physical_ability": 2,

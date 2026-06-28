@@ -24,6 +24,15 @@ const RollDiceS = preload("res://source_codes/players/actions/RollDice.gd")
 const EquipFromCollectionS = preload("res://source_codes/players/actions/EquipFromCollection.gd")
 const UnequipActionS = preload("res://source_codes/players/actions/UnequipAction.gd")
 const MoveEquipmentToCollectionS = preload("res://source_codes/players/actions/MoveEquipmentToCollection.gd")
+const TrixieMagicPropS = preload("res://source_codes/skills/character/trixie_magic_prop.gd")
+const TrixieMagicPropActionS = preload("res://source_codes/skills/actions/trixie_magic_prop_action.gd")
+const TrixieFragilePrideS = preload("res://source_codes/skills/character/trixie_fragile_pride.gd")
+const DiceFailureTriggerS = preload("res://source_codes/skills/actions/dice_failure_trigger.gd")
+const MagicPropDiscardS = preload("res://source_codes/skills/actions/magic_prop_discard.gd")
+const PartyCannonS = preload("res://source_codes/skills/equipment/party_cannon.gd")
+const PartyCannonRecoveryS = preload("res://source_codes/skills/actions/party_cannon_recovery.gd")
+const PartyCannonResultS = preload("res://source_codes/skills/actions/party_cannon_result.gd")
+const StaffMagicConversionS = preload("res://source_codes/skills/equipment/staff_magic_conversion.gd")
 
 var _passed := 0
 var _failed := 0
@@ -1057,6 +1066,11 @@ func _test_skills_all() -> void:
     _test_maud_prospect()
     _test_sunburst_cristall_shine()
     _test_heal_chain()
+    _test_trixie_magic_prop()
+    _test_trixie_fragile_pride()
+    _test_party_cannon()
+    _test_staff_magic_conversion()
+    _test_dice_failure_trigger()
     _test_terrain_system()
 
 
@@ -1103,7 +1117,9 @@ func _test_skill_manager_load() -> void:
     ])
 
     var ids = ["earth_pony_strength", "unicorn_magic_reach", "pegasus_freedom",
-               "maud_prospect", "maud_calm", "sunburst_cristall_shine"]
+    var ids = ["earth_pony_strength", "unicorn_magic_reach", "pegasus_freedom",
+               "maud_prospect", "maud_calm", "sunburst_cristall_shine",
+               "trixie_magic_prop", "trixie_fragile_pride"]
     for sid in ids:
         var template = sm.get_skill(sid)
         _assert(template != null, "技能 '%s' 存在" % sid, "未找到")
@@ -1420,3 +1436,180 @@ func _test_terrain_system() -> void:
     p.free()
     pegasus.free()
     tm.free()
+
+
+# ---------- 21k. 魔术道具（特丽克西角色技能） ----------
+
+func _test_trixie_magic_prop() -> void:
+    print("")
+    print("  -- 21k. 魔术道具（trixie_magic_prop） --")
+
+    var skill = TrixieMagicPropS.new()
+    _assert(skill.id == "trixie_magic_prop", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Character, "category=Character", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Active, "skill_type=Active", "")
+    _assert(skill.needs_target == false, "needs_target=false", "")
+    _assert(skill.needs_card_discard == false, "needs_card_discard=false", "")
+
+    # TrixieMagicPropAction 基本属性
+    var action = TrixieMagicPropActionS.new()
+    _assert(action != null, "TrixieMagicPropAction 实例化", "")
+    _assert(action.chosen_damage_type == -1, "chosen_damage_type 初始=-1", "实际: %d" % action.chosen_damage_type)
+    _assert(action.card_to_discard == null, "card_to_discard 初始=null", "")
+
+    # take_action 无 card_to_discard 不崩溃
+    action.take_action()
+    _assert(true, "take_action 无卡牌不崩溃", "")
+
+    # reset_property
+    action.chosen_damage_type = DamageS.DamageType.Physical
+    action.reset_property()
+    _assert(action.chosen_damage_type == -1, "reset 后 chosen=-1", "实际: %d" % action.chosen_damage_type)
+
+    # inform_next_action 无 target 无崩溃
+    action.card_to_discard = CardDataS.new()
+    action.chosen_damage_type = DamageS.DamageType.Magic
+    action.inform_next_action()
+    _assert(true, "inform_next_action 无 target 不崩溃", "")
+
+    # MagicPropDiscard 基本属性
+    var discard = MagicPropDiscardS.new()
+    _assert(discard != null, "MagicPropDiscard 实例化", "")
+    _assert(discard.reserved_card == null, "reserved_card 初始=null", "")
+
+    # discard take_action 无 card 不崩溃
+    discard.take_action()
+    _assert(true, "MagicPropDiscard take_action 不崩溃", "")
+
+    # 有 reserved_card + generation 匹配时弃牌
+    var p = PlayerS.new()
+    p.add_card_to_hand(CardDataS.new())
+    var card = CardDataS.new()
+    card.set("nice_name", "测试武器")
+    card.set("type", "Weapon")
+    p.add_card_to_hand(card)
+    p.set_meta("magic_prop_gen", 42)
+    discard.player = p
+    discard.reserved_card = card
+    discard._gen = 42
+    discard.take_action()
+    _assert(p.get_hand_size() == 1, "generation 匹配时弃牌，手牌-1", "实际: %d" % p.get_hand_size())
+    _assert(not p.hand.has(card), "卡牌已从手牌移除", "")
+
+    # generation 不匹配时不弃牌
+    var p2 = PlayerS.new()
+    var card2 = CardDataS.new()
+    p2.add_card_to_hand(card2)
+    p2.set_meta("magic_prop_gen", 99)
+    var discard2 = MagicPropDiscardS.new()
+    discard2.player = p2
+    discard2.reserved_card = card2
+    discard2._gen = 1  # 不匹配
+    discard2.take_action()
+    _assert(p2.get_hand_size() == 1, "generation 不匹配时不弃牌", "实际: %d" % p2.get_hand_size())
+
+    p.free()
+    p2.free()
+    action.free()
+    discard.free()
+    discard2.free()
+    skill.free()
+
+
+# ---------- 21l. 易碎骄傲（特丽克西角色技能） ----------
+
+func _test_trixie_fragile_pride() -> void:
+    print("")
+    print("  -- 21l. 易碎骄傲（trixie_fragile_pride） --")
+
+    var skill = TrixieFragilePrideS.new()
+    _assert(skill.id == "trixie_fragile_pride", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Character, "category=Character", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Passive, "skill_type=Passive", "")
+    _assert(skill.needs_target == false, "needs_target=false", "")
+
+    # 默认未禁用
+    _assert(not skill.is_disabled(), "易碎骄傲默认启用", "")
+
+    # set_disabled 切换
+    skill.set_disabled(true, null)
+    _assert(skill.is_disabled(), "set_disabled(true) 已禁用", "")
+    skill.set_disabled(false, null)
+    _assert(not skill.is_disabled(), "set_disabled(false) 恢复", "")
+
+    skill.free()
+
+
+# ---------- 21m. DiceFailureTrigger ----------
+
+func _test_dice_failure_trigger() -> void:
+    print("")
+    print("  -- 21m. DiceFailureTrigger --")
+
+    var trigger = DiceFailureTriggerS.new()
+    _assert(trigger != null, "DiceFailureTrigger 实例化", "")
+
+    # 无树不崩溃
+    trigger.take_action()
+    _assert(true, "take_action 无树不崩溃", "")
+
+    # _failed 初始 false
+    trigger.reset_property()
+    _assert(true, "reset_property 不崩溃", "")
+
+    trigger.free()
+
+
+# ---------- 21n. 派对大炮（Party Cannon） ----------
+
+func _test_party_cannon() -> void:
+    print("")
+    print("  -- 21n. 派对大炮（party_cannon） --")
+
+    var skill = PartyCannonS.new()
+    _assert(skill.id == "party_cannon_recovery", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Equipment, "category=Equipment", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Passive, "skill_type=Passive", "")
+
+    # PartyCannonRecovery
+    var recovery = PartyCannonRecoveryS.new()
+    _assert(recovery != null, "PartyCannonRecovery 实例化", "")
+    recovery.take_action()
+    _assert(true, "take_action 不崩溃", "")
+
+    # PartyCannonResult
+    var result = PartyCannonResultS.new()
+    _assert(result != null, "PartyCannonResult 实例化", "")
+    result.take_action()
+    _assert(true, "take_action 不崩溃", "")
+    result.reset_property()
+    _assert(result._success == false, "reset 后 _success=false", "")
+
+    recovery.free()
+    result.free()
+    skill.free()
+
+
+# ---------- 21o. 法杖魔力灌注 ----------
+
+func _test_staff_magic_conversion() -> void:
+    print("")
+    print("  -- 21o. 法杖魔力灌注（staff_magic_conversion） --")
+
+    var skill = StaffMagicConversionS.new()
+    _assert(skill.id == "staff_magic_conversion", "id 正确", "实际: %s" % skill.id)
+    _assert(skill.category == SkillDataS.Category.Equipment, "category=Equipment", "")
+    _assert(skill.skill_type == SkillDataS.SkillType.Passive, "skill_type=Passive", "")
+
+    # on_attach 设 meta
+    var p = PlayerS.new()
+    skill.on_attach(p)
+    _assert(p.has_meta("equip_staff_magic"), "on_attach 设 meta equip_staff_magic", "")
+    _assert(p.get_meta("equip_staff_magic") == true, "meta 值为 true", "")
+
+    # on_detach 移除 meta
+    skill.on_detach(p)
+    _assert(not p.has_meta("equip_staff_magic"), "on_detach 移除 meta", "")
+
+    p.free()
+    skill.free()
