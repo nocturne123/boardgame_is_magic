@@ -76,6 +76,8 @@ func get_action_node(_tree: ActionTree) -> BaseAction:
 # ============================================================
 
 func _get_action_tree(player: Player) -> ActionTree:
+    if player == null:
+        return null
     return player.get_node_or_null("ActionTree") as ActionTree
 
 ## 创建 action 节点并加入 ActionTree。幂等：同名节点已存在则返回已有的。

@@ -17,9 +17,9 @@ func take_action() -> void:
         # fallback：攻击牌走 resolve → Damage，通过目标 ActionTree 的伤害链
         var result: Variant = card.resolve(player, target)
         if result is Damage:
-            # 法杖魔力灌注：攻击牌转化为魔法攻击
+            # 法杖魔力灌注：攻击牌转化为魔法攻击（魔术道具虚拟牌除外——保留玩家选择的攻击类型）
             if player.has_meta("equip_staff_magic") and player.get_meta("equip_staff_magic"):
-                if card is BaseAttack:
+                if card is BaseAttack and not card.identity.begins_with("__"):
                     (result as Damage).type = Damage.DamageType.Magic
                     (result as Damage).num = int(player.magic_ability)
             # 蛮力加成
@@ -32,13 +32,17 @@ func take_action() -> void:
             var target_tree := target.get_node_or_null("ActionTree")
             if target_tree != null and target_tree.get("receive_damage") != null:
                 target_tree.receive_damage.damage = result as Damage
+                # R14 保护：目标可能是自己（同树嵌套），保存/恢复外层链状态
+                var saved: BaseAction = target_tree._current_chain_action
                 target_tree.chain_of_actions(target_tree.receive_damage)
+                target_tree._current_chain_action = saved
 
     player.remove_card_from_hand(card)
 
     if player.is_collection_item(card.identity):
         player._add_to_slot(Player.EquipmentSlotType.Collection, card)
-    elif player.card_manager:
+    elif not card.identity.begins_with("__") and player.card_manager:
+        # 魔术道具虚拟牌（identity 以 __ 开头）不进弃牌堆，避免污染牌库
         player.card_manager.receive_into_discard(card)
 
     # 攻击牌递减攻击次数

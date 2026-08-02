@@ -11,6 +11,12 @@ var restore_next: BaseAction = null
 var _gen: int = 0
 
 func take_action() -> void:
+    if player == null:
+        # 无 player（测试/异常路径）：只恢复链，不弃牌
+        if restore_target:
+            restore_target.next_action = restore_next
+        queue_free()
+        return
     var current_gen: int = player.get_meta("magic_prop_gen", 0)
     if reserved_card != null and _gen == current_gen:
         player.remove_card_from_hand(reserved_card)
@@ -20,6 +26,8 @@ func take_action() -> void:
     # 恢复 UseBaseplay 的原始链
     if restore_target:
         restore_target.next_action = restore_next
+    # 本节点是一次性临时节点，执行完自清理（防止 ActionTree 上堆积）
+    queue_free()
 
 func reset_property() -> void:
     reserved_card = null

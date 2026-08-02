@@ -75,12 +75,9 @@ func _check_hud_sizes() -> void:
         else:
             print("[PASS] _hud_container 在窗口范围内")
 
-    # 1b. 找到 main_vbox
-    var vbox = null
-    for child in container.get_children():
-        if child is VBoxContainer:
-            vbox = child
-            break
+    # 1b. 找到 main_vbox（hud_battle.gd 已有 @onready 引用，直接取）
+    # 注意：HudContainer 的直接子是 Margin (MarginContainer)，遍历子节点找不到 VBoxContainer
+    var vbox = _hud_battle.get("main_vbox")
 
     if vbox == null:
         print("[FAIL] main_vbox 不存在")

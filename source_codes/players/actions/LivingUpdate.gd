@@ -41,7 +41,10 @@ func take_action():
     var tree = player.get_node_or_null("ActionTree")
     if tree and tree.get("heal_entry") != null:
         tree.heal_entry.heal_amount = heal_amount
+        # R14 保护：嵌套链会覆盖 _current_chain_action，跑完后恢复外层链状态
+        var saved: BaseAction = tree._current_chain_action
         tree.chain_of_actions(tree.heal_entry)
+        tree._current_chain_action = saved
 
 func reset_property():
     _living_result = ""

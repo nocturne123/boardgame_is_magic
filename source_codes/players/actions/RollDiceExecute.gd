@@ -10,6 +10,8 @@ func take_action():
 
 func inform_next_action():
     var tree = get_parent() as ActionTree
+    if tree == null:
+        return
     var entry = tree.get_node_or_null("RollDiceEntry")
     if entry:
         entry.dice_result = dice_result

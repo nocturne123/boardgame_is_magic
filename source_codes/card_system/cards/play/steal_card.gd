@@ -16,9 +16,9 @@ func resolve(_source: Player, _target: Player) -> Variant:
 
 func execute(_source: Player, target: Player, _card_manager: CardManager) -> bool:
     if target.get_hand_size() > 0:
-        var stolen: CardData = target.hand.pop_back()
-        target.card_removed_from_hand.emit(stolen)
-        target.hand_updated.emit()
+        # 通过容器方法偷手牌（R4：容器操作走 Player 方法，自动发信号）
+        var stolen: CardData = target.hand[target.hand.size() - 1]
+        target.remove_card_from_hand(stolen)
         _source.add_card_to_hand(stolen)
         return true
     for slot in [Player.EquipmentSlotType.Weapon, Player.EquipmentSlotType.Armor, Player.EquipmentSlotType.Element]:
@@ -35,5 +35,9 @@ func execute(_source: Player, target: Player, _card_manager: CardManager) -> boo
             var stolen_equip: CardData = arr.pop_back() as CardData
             stolen_equip.on_unequip(target, slot)
             target.equipment[slot] = arr
+            # 被偷装备进目标弃牌堆（规则：弃掉他一个装备），并刷新装备栏 UI
+            if target.card_manager:
+                target.card_manager.receive_into_discard(stolen_equip)
+            target.equipment_changed.emit(slot)
             return true
     return false

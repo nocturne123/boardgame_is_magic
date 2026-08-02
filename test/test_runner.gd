@@ -20,7 +20,7 @@ const DecreaseHealthS = preload("res://source_codes/players/actions/DecreaseHeal
 const LivingUpdateS = preload("res://source_codes/players/actions/LivingUpdate.gd")
 const DiscardCardS = preload("res://source_codes/players/actions/DiscardCard.gd")
 const DrawCardS = preload("res://source_codes/players/actions/DrawCard.gd")
-const RollDiceS = preload("res://source_codes/players/actions/RollDice.gd")
+const RollDiceExecuteS = preload("res://source_codes/players/actions/RollDiceExecute.gd")
 const EquipFromCollectionS = preload("res://source_codes/players/actions/EquipFromCollection.gd")
 const UnequipActionS = preload("res://source_codes/players/actions/UnequipAction.gd")
 const MoveEquipmentToCollectionS = preload("res://source_codes/players/actions/MoveEquipmentToCollection.gd")
@@ -190,12 +190,12 @@ func _test_card_manager_init() -> void:
 
     var cm := CardManagerS.new()
     cm._normal_paths = [
-        "res://source_codes/data/normalcard/baseplay_database.json",
-        "res://source_codes/data/normalcard/weapon_database.json",
-        "res://source_codes/data/normalcard/armor_database.json",
-        "res://source_codes/data/normalcard/element_database.json",
-        "res://source_codes/data/normalcard/effect_database.json",
-        "res://source_codes/data/normalcard/recovery_database.json",
+        "res://source_codes/data/normalcard/baseplay/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon/weapon_database.json",
+        "res://source_codes/data/normalcard/armor/armor_database.json",
+        "res://source_codes/data/normalcard/element/element_database.json",
+        "res://source_codes/data/normalcard/effect/effect_database.json",
+        "res://source_codes/data/normalcard/recovery/recovery_database.json",
     ]
     cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
@@ -244,12 +244,12 @@ func _test_card_manager_create_card() -> void:
 
     var cm := CardManagerS.new()
     cm._normal_paths = [
-        "res://source_codes/data/normalcard/baseplay_database.json",
-        "res://source_codes/data/normalcard/weapon_database.json",
-        "res://source_codes/data/normalcard/armor_database.json",
-        "res://source_codes/data/normalcard/element_database.json",
-        "res://source_codes/data/normalcard/effect_database.json",
-        "res://source_codes/data/normalcard/recovery_database.json",
+        "res://source_codes/data/normalcard/baseplay/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon/weapon_database.json",
+        "res://source_codes/data/normalcard/armor/armor_database.json",
+        "res://source_codes/data/normalcard/element/element_database.json",
+        "res://source_codes/data/normalcard/effect/effect_database.json",
+        "res://source_codes/data/normalcard/recovery/recovery_database.json",
     ]
     cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
@@ -382,12 +382,12 @@ func _test_player_hand() -> void:
 
     var cm := CardManagerS.new()
     cm._normal_paths = [
-        "res://source_codes/data/normalcard/baseplay_database.json",
-        "res://source_codes/data/normalcard/weapon_database.json",
-        "res://source_codes/data/normalcard/armor_database.json",
-        "res://source_codes/data/normalcard/element_database.json",
-        "res://source_codes/data/normalcard/effect_database.json",
-        "res://source_codes/data/normalcard/recovery_database.json",
+        "res://source_codes/data/normalcard/baseplay/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon/weapon_database.json",
+        "res://source_codes/data/normalcard/armor/armor_database.json",
+        "res://source_codes/data/normalcard/element/element_database.json",
+        "res://source_codes/data/normalcard/effect/effect_database.json",
+        "res://source_codes/data/normalcard/recovery/recovery_database.json",
     ]
     cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
@@ -405,7 +405,7 @@ func _test_player_hand() -> void:
     card2.set("type", "Effect")
     var card3: Resource = CardDataS.new()
     card3.set("nice_name", "测试牌C")
-    card3.set("type", "Equipment")
+    card3.set("type", "Effect")
 
     # add_card_to_hand
     p.add_card_to_hand(card1)
@@ -558,12 +558,12 @@ func _test_use_card_action() -> void:
 
     var cm := CardManagerS.new()
     cm._normal_paths = [
-        "res://source_codes/data/normalcard/baseplay_database.json",
-        "res://source_codes/data/normalcard/weapon_database.json",
-        "res://source_codes/data/normalcard/armor_database.json",
-        "res://source_codes/data/normalcard/element_database.json",
-        "res://source_codes/data/normalcard/effect_database.json",
-        "res://source_codes/data/normalcard/recovery_database.json",
+        "res://source_codes/data/normalcard/baseplay/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon/weapon_database.json",
+        "res://source_codes/data/normalcard/armor/armor_database.json",
+        "res://source_codes/data/normalcard/element/element_database.json",
+        "res://source_codes/data/normalcard/effect/effect_database.json",
+        "res://source_codes/data/normalcard/recovery/recovery_database.json",
     ]
     cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
@@ -584,11 +584,15 @@ func _test_use_card_action() -> void:
     # 创建 UseCard，手动设置 player（@onready 在 headless 不触发）
     var action := UseCardS.new()
     action.set("player", source)
-    action.set("card", cm.create_card("物理攻击"))
+    # headless 下 create_card 返回 null，手动构造卡牌使测试有效
+    var card: Resource = CardDataS.new()
+    card.set("nice_name", "物理攻击")
+    card.set("type", "Attack")
+    action.set("card", card)
     action.set("target", target)
 
     action.take_action()
-    _assert(true, "UseCard.take_action() 不抛异常", "")
+    _assert(action.get("card") == card, "UseCard.take_action 不清空 card", "实际: %s" % str(action.get("card")))
 
     action.reset_property()
     _assert(action.get("card") == null, "reset_property 清除 card", "实际: %s" % str(action.get("card")))
@@ -848,19 +852,24 @@ func _test_direct_damage() -> void:
     _assert(p.get("armor") == 0, "护甲归零", "实际: %d" % p.get("armor"))
 
     p.set("health", 5)
-    p.set("armor", 10)
+    p.set("armor", 10)  # setter clamp 到 4
     dh.decrease_num = 3
     dh.skip_armor = true
     dh.take_action()
     _assert(p.get("health") == 2, "skip_armor 直接扣血: HP 5->2", "实际: %d" % p.get("health"))
-    _assert(p.get("armor") == 10, "护甲未变化", "实际: %d" % p.get("armor"))
+    _assert(p.get("armor") == 4, "护甲未变化 (clamp上限4)", "实际: %d" % p.get("armor"))
 
     dh.decrease_num = 10
     dh.skip_armor = true
     dh.take_action()
     _assert(p.get("health") <= 0, "过量伤害致死", "实际: %d" % p.get("health"))
+    # 存活判定由 LivingUpdate 负责，单独 DecreaseHealth 不设 living_state
+    var lu: Node = LivingUpdateS.new()
+    lu.player = p
+    lu.take_action()
     _assert(p.get("living_state") != 0, "标记为 Dead", "实际: %d" % p.get("living_state"))
 
+    lu.free()
     dh.free()
     p.free()
 
@@ -954,12 +963,12 @@ func _test_card_manager_extra_ops() -> void:
 
     var cm := CardManagerS.new()
     cm._normal_paths = [
-        "res://source_codes/data/normalcard/baseplay_database.json",
-        "res://source_codes/data/normalcard/weapon_database.json",
-        "res://source_codes/data/normalcard/armor_database.json",
-        "res://source_codes/data/normalcard/element_database.json",
-        "res://source_codes/data/normalcard/effect_database.json",
-        "res://source_codes/data/normalcard/recovery_database.json",
+        "res://source_codes/data/normalcard/baseplay/baseplay_database.json",
+        "res://source_codes/data/normalcard/weapon/weapon_database.json",
+        "res://source_codes/data/normalcard/armor/armor_database.json",
+        "res://source_codes/data/normalcard/element/element_database.json",
+        "res://source_codes/data/normalcard/effect/effect_database.json",
+        "res://source_codes/data/normalcard/recovery/recovery_database.json",
     ]
     cm.json_card_collection_path = "res://source_codes/data/cardpile/hudbattle_pile/drawpile_database.json"
     cm.load_json_path()
@@ -1004,7 +1013,8 @@ func _test_roll_dice() -> void:
     print("")
     print("--- 20. RollDice ---")
 
-    var action := RollDiceS.new()
+    var action := RollDiceExecuteS.new()
+    action.set("player", null)
     action.take_action()
     var result: int = action.get("dice_result")
     _assert(result >= 1 and result <= 6, "骰子结果在 1-6 范围内", "实际: %d" % result)
@@ -1117,7 +1127,6 @@ func _test_skill_manager_load() -> void:
     ])
 
     var ids = ["earth_pony_strength", "unicorn_magic_reach", "pegasus_freedom",
-    var ids = ["earth_pony_strength", "unicorn_magic_reach", "pegasus_freedom",
                "maud_prospect", "maud_calm", "sunburst_cristall_shine",
                "trixie_magic_prop", "trixie_fragile_pride"]
     for sid in ids:
@@ -1169,7 +1178,7 @@ func _test_earth_pony_strength() -> void:
 
     exec.free()
     next.free()
-    skill.free()
+    skill = null
 
 
 # ---------- 21d. 魔法触及（独角兽种族技能） ----------
@@ -1198,7 +1207,7 @@ func _test_unicorn_magic_reach() -> void:
     _assert(not p.has_meta("attack_range_bonus"), "失效时 on_attach 不设 meta", "")
 
     p.free()
-    skill.free()
+    skill = null
 
 
 # ---------- 21e. 自由翱翔（天马种族技能） ----------
@@ -1231,7 +1240,7 @@ func _test_pegasus_freedom() -> void:
     _assert(not p.has_meta("terrain_immune"), "on_detach 移除 terrain_immune", "")
 
     p.free()
-    skill.free()
+    skill = null
 
 
 # ---------- 21f. 冷静（灰琪角色技能） ----------
@@ -1266,7 +1275,7 @@ func _test_maud_calm() -> void:
     _assert(exec.get("chosen") == 0, "reset chosen 清零", "")
 
     exec.free()
-    skill.free()
+    skill = null
 
 
 # ---------- 21g. 勘探（灰琪角色技能） ----------
@@ -1297,7 +1306,7 @@ func _test_maud_prospect() -> void:
 
     entry.free()
     effect.free()
-    skill.free()
+    skill = null
 
 
 # ---------- 21h. 水晶洗礼（日光耀耀角色技能） ----------
@@ -1345,7 +1354,7 @@ func _test_sunburst_cristall_shine() -> void:
 
     caster.free()
     target.free()
-    skill.free()
+    skill = null
 
 
 # ---------- 21i. 恢复链 HealEntry → HealExecute ----------
@@ -1511,9 +1520,8 @@ func _test_trixie_magic_prop() -> void:
     p.free()
     p2.free()
     action.free()
-    discard.free()
-    discard2.free()
-    skill.free()
+    # discard/discard2 的 take_action 内部已 queue_free()，不手动 free 避免双重释放
+    skill = null
 
 
 # ---------- 21l. 易碎骄傲（特丽克西角色技能） ----------
@@ -1531,13 +1539,15 @@ func _test_trixie_fragile_pride() -> void:
     # 默认未禁用
     _assert(not skill.is_disabled(), "易碎骄傲默认启用", "")
 
-    # set_disabled 切换
-    skill.set_disabled(true, null)
+    # set_disabled 切换（传真实 player：on_attach/on_detach 会访问 ActionTree）
+    var p = PlayerS.new()
+    skill.set_disabled(true, p)
     _assert(skill.is_disabled(), "set_disabled(true) 已禁用", "")
-    skill.set_disabled(false, null)
+    skill.set_disabled(false, p)
     _assert(not skill.is_disabled(), "set_disabled(false) 恢复", "")
+    p.free()
 
-    skill.free()
+    skill = null
 
 
 # ---------- 21m. DiceFailureTrigger ----------
@@ -1587,7 +1597,7 @@ func _test_party_cannon() -> void:
 
     recovery.free()
     result.free()
-    skill.free()
+    skill = null
 
 
 # ---------- 21o. 法杖魔力灌注 ----------
@@ -1612,4 +1622,4 @@ func _test_staff_magic_conversion() -> void:
     _assert(not p.has_meta("equip_staff_magic"), "on_detach 移除 meta", "")
 
     p.free()
-    skill.free()
+    skill = null

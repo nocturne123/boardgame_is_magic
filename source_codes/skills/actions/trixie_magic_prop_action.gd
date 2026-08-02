@@ -43,11 +43,20 @@ func inform_next_action() -> void:
         var gen: int = player.get_meta("magic_prop_gen", 0) + 1
         player.set_meta("magic_prop_gen", gen)
 
+        # 清理上次残留的 MagicPropDiscard 节点（RangeCheck 阻断等场景会遗留）。
+        # 若 UseBaseplay 仍指向旧节点，先恢复其原始链，避免悬空引用。
+        for child in tree.get_children():
+            if child is MagicPropDiscard:
+                if ubp.next_action == child:
+                    ubp.next_action = child.restore_next
+                child.queue_free()
+
         var discard := MagicPropDiscard.new()
         discard.name = "MagicPropDiscard"
         discard.reserved_card = card_to_discard
         discard.restore_target = ubp
         discard.restore_next = ubp.next_action
+        discard._gen = gen  # ← 必须匹配当前 generation，否则弃牌永远不会执行
         tree.add_child(discard)
         ubp.next_action = discard
 

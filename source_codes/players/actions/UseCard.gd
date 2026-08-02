@@ -52,7 +52,12 @@ func inform_next_action() -> void:
     # 2. 判断是否需要距离校验
     var need_range := false
     var check_range := 1
-    if card.type == "Attack":
+    if card.type == "Attack" or card.type == "Steal":
+        # 攻击/偷牌：按武器攻击距离 + 种族/meta 加成计算
+        need_range = true
+        check_range = _calc_attack_range(player)
+    elif card.type == "Event":
+        # 事件手牌（魔法对决）：同样受攻击距离限制（规则：选择攻击范围内的对手）
         need_range = true
         check_range = _calc_attack_range(player)
     elif card.needs_range_check:

@@ -8,6 +8,8 @@ var _effect_text: String = ""
 func take_action():
     _effect_text = ""
     var tree = get_parent() as ActionTree
+    if tree == null:
+        return
     var entry = tree.get_node_or_null("ProspectEntry")
     if entry == null or not entry.prospect_activated:
         return

@@ -1,14 +1,16 @@
-Godot Engine v4.6.2.stable.official.71f334935 - https://godotengine.org
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
 
-SCRIPT ERROR: Parse Error: Cannot infer the type of "old_card" variable because the value doesn't have a set type.
-          at: GDScript::reload (res://source_codes/players/actions/EquipFromCollection.gd:34)
-SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
-          at: GDScript::reload (res://test/test_runner.gd:0)
-ERROR: Failed to load script "res://test/test_runner.gd" with error "Compilation failed".
-   at: load (modules/gdscript/gdscript.cpp:2907)
+WARNING: res://addons/vfx_library/effects/torch_fire.tscn:3 - ext_resource, invalid UID: uid://myifb78r1npn - using text path instead: res://addons/vfx_library/assets/effect/fire_particle.png
+     at: load (scene/resources/resource_format_text.cpp:501)
+WARNING: res://addons/vfx_library/effects/fireflies.tscn:3 - ext_resource, invalid UID: uid://bbghnd0vvme2d - using text path instead: res://addons/vfx_library/assets/effect/firefly.png
+     at: load (scene/resources/resource_format_text.cpp:501)
+WARNING: res://addons/vfx_library/effects/sparks.tscn:3 - ext_resource, invalid UID: uid://drr6daq3sja1c - using text path instead: res://addons/vfx_library/assets/effect/spark_particle2.png
+     at: load (scene/resources/resource_format_text.cpp:501)
+WARNING: res://addons/vfx_library/effects/falling_leaves.tscn:3 - ext_resource, invalid UID: uid://b8dl8j7xvq321 - using text path instead: res://addons/vfx_library/assets/effect/leaf.png
+     at: load (scene/resources/resource_format_text.cpp:501)
 ============================================================
   BoardGame Is Magic — 综合测试套件
-  时间: 2026-06-21T10:26:57
+  时间: 2026-08-02T23:14:40
 ============================================================
 
 --- 1. 六边形格距离 (even-r offset → cube) ---
@@ -42,3 +44,350 @@ ERROR: Failed to load script "res://test/test_runner.gd" with error "Compilation
 
 --- 4. CardManager 创建卡牌 ---
   [NOTE] headless 下 card_script.new() 不可用，跳过 create_card 测试
+WARNING: CardManager: 无法创建卡牌 '不存在的牌'，数据库中未找到
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] create_card (res://source_codes/card_system/card_manager.gd:139)
+         [1] _test_card_manager_create_card (res://test/test_runner.gd:263)
+         [2] _run_all_tests (res://test/test_runner.gd:68)
+         [3] _ready (res://test/test_runner.gd:48)
+  [PASS] 创建不存在的牌返回 null
+  [PASS] 按 identity 查询 PhysicalAttack
+  [PASS] identity 对应 nice_name 正确
+
+--- 5. Player 初始化 ---
+  [PASS] Player 实例化
+  [PASS] player_name 设置/读取
+  [PASS] health = 10
+  [PASS] max_health = 10
+  [PASS] armor = 2
+  [PASS] speed = 3
+  [PASS] physical_defence
+  [PASS] magic_defence
+  [PASS] mental_defence
+  [PASS] move_chance = 2
+  [PASS] attack_chance = 2
+  [PASS] draw_stage_card_number = 3
+  [PASS] 初始存活状态
+  [PASS] 初始 map_position 为 (0,0)
+
+--- 6. Player 装备系统 ---
+  [PASS] 武器槽初始为空
+  [PASS] 防具槽初始为空
+  [PASS] 派对大炮 是收藏品
+  [PASS] 宝石 是收藏品
+  [PASS] 物理攻击 不是收藏品
+  [PASS] 空字符串不是收藏品
+  [PASS] 长剑在武器槽
+  [PASS] 未装备的收藏品可直接移入收藏品栏
+  [PASS] 派对大炮从武器槽移入收藏品栏
+  [PASS] 收藏品栏含派对大炮
+  [PASS] 派对大炮从收藏栏移到武器槽
+  [PASS] 武器槽现在含派对大炮
+
+--- 7. Player 手牌管理 ---
+  [NOTE] headless 下 CardManager.create_card 内部 CardData.new() 不可用
+  [NOTE] 使用手动构建的 CardData 资源测试手牌操作方法
+  [PASS] add_card_to_hand ×3
+  [PASS] 手牌含测试牌A
+  [PASS] 手牌含测试牌B
+  [PASS] 手牌含测试牌C
+  [PASS] remove_card_from_hand 后 hand=2
+  [PASS] card2 已从手牌移除
+  [PASS] 弃牌后手牌 size=1
+  [PASS] 弃牌堆 size=1
+  [PASS] DrawCard 动作可执行（headless 下≥1）
+  [PASS] 无 card_manager 时 draw 无操作
+
+--- 8. Player move_to_position ---
+  [PASS] 移动到 (3,5)
+  [PASS] 移动到 (-1,-2)
+
+--- 9. BaseAction 基础 ---
+  [PASS] BaseAction 实例化
+  [PASS] next_action 初始为 null
+  [PASS] extra_function 初始为 null
+  [PASS] trigger() 不抛异常 (默认 take_action)
+  [PASS] 有 extra_function 时 trigger() 调用它
+  [PASS] reset_property() 不抛异常
+  [PASS] next_action 可链接
+
+--- 10. MoveAction ---
+  [PASS] action.player 指向正确
+ERROR: The object does not have any 'meta' values with the key 'terrain_manager'.
+   at: get_meta (core/object/object.cpp:1053)
+   GDScript backtrace (most recent call first):
+       [0] take_action (res://source_codes/players/actions/MoveAction.gd:11)
+       [1] _test_move_action (res://test/test_runner.gd:541)
+       [2] _run_all_tests (res://test/test_runner.gd:74)
+       [3] _ready (res://test/test_runner.gd:48)
+  [PASS] MoveAction 改变 map_position
+  [PASS] MoveAction 递减 move_chance_in_turn
+  [PASS] reset_property 清除 target_cell
+
+--- 11. UseCard Action 链 ---
+  [PASS] UseCard.take_action 不清空 card
+  [PASS] reset_property 清除 card
+  [PASS] reset_property 清除 target
+
+--- 12. TurnManager 初始化 ---
+  [NOTE] headless 下 Player.LivingState 枚举无法解析，使用 set/get 访问属性
+  [PASS] setup() 后 current_player 不为 null（新行为）
+  [PASS] start_game(0) 设置当前玩家
+  [PASS] 当前玩家为 p1
+  [PASS] get_alive_count = 2
+
+--- 13. TurnManager 回合流转 ---
+  [NOTE] headless 下使用 connect() 方法连接信号，避免类型推断问题
+  [PASS] start_game + 两次 end_current_turn 不抛异常
+  [PASS] get_current_player() 方法可调用
+
+--- 14. TurnStart 动作 ---
+ERROR: The object does not have any 'meta' values with the key 'event_manager'.
+   at: get_meta (core/object/object.cpp:1053)
+   GDScript backtrace (most recent call first):
+       [0] take_action (res://source_codes/players/actions/TurnStart.gd:17)
+       [1] _test_turn_start_action (res://test/test_runner.gd:713)
+       [2] _run_all_tests (res://test/test_runner.gd:78)
+       [3] _ready (res://test/test_runner.gd:48)
+ERROR: The object does not have any 'meta' values with the key 'terrain_manager'.
+   at: get_meta (core/object/object.cpp:1053)
+   GDScript backtrace (most recent call first):
+       [0] take_action (res://source_codes/players/actions/TurnStart.gd:22)
+       [1] _test_turn_start_action (res://test/test_runner.gd:713)
+       [2] _run_all_tests (res://test/test_runner.gd:78)
+       [3] _ready (res://test/test_runner.gd:48)
+  [PASS] TurnStart 递增 turn_count
+  [PASS] 重置 move_chance_in_turn
+  [PASS] 重置 attack_chance_in_turn
+  [PASS] TurnStart -> DrawCard 传递 draw_stage_card_number
+
+--- 15. 伤害链 ---
+  [PASS] 物理伤害: 5-1物防=4
+  [PASS] 扣血后 HP: 10->8
+  [PASS] 护甲从 2 扣至 0
+  [PASS] 真实伤害不减防御: 3
+  [PASS] 真实伤害无视护甲: HP 10->7
+  [PASS] 护甲未变化
+  [PASS] 防御高于伤害时伤害为 0
+  [PASS] HP<=0 后 LivingUpdate 标记死亡
+
+--- 16. DecreaseHealth 动作 ---
+  [PASS] 护甲完全吸收: HP 不变
+  [PASS] 护甲: 3->1
+  [PASS] 超出护甲部分扣血: HP 10->6
+  [PASS] 护甲归零
+  [PASS] skip_armor 直接扣血: HP 5->2
+  [PASS] 护甲未变化 (clamp上限4)
+  [PASS] 过量伤害致死
+  [PASS] 标记为 Dead
+
+--- 17. 装备系统边界情况 ---
+  [PASS] 初始武器槽未被收藏品占用
+  [PASS] is_slot_occupied_by_collection 方法存在
+  [PASS] equipment_changed 信号连接不抛异常
+  [PASS] null 牌不可移入收藏品栏
+  [PASS] 非收藏品不可移入收藏品栏
+
+--- 18. TurnManager remove_player ---
+  [PASS] 初始存活: 3
+  [PASS] remove_player 后: 2
+  [PASS] _players 数组: 2
+  [PASS] 重复 remove 幂等
+  [PASS] last_player_standing 信号连接不抛异常
+
+--- 19. CardManager 额外操作 ---
+  [PASS] get_cards_in_draw_pile 正确
+  [PASS] get_cards_in_discard_pile 初始为空
+  [PASS] set_card_pile 不抛异常
+  [PASS] remove_from_game 不影响其他牌
+  [PASS] 重复 remove_from_game 不抛异常
+  [PASS] 关闭洗回时不补牌
+
+--- 20. RollDice ---
+  [PASS] 骰子结果在 1-6 范围内
+  [PASS] 20 次投掷均在 1-6 范围内
+  [PASS] inform_next_action 不抛异常
+  [PASS] reset_property 清零
+
+--- 21. 技能系统综合测试 ---
+
+  -- 21a. SkillData 基类 --
+  [PASS] SkillData id 赋值
+  [PASS] SkillData 默认未失效
+  [PASS] SkillData 初始无插入节点
+  [PASS] set_disabled(true) 后已失效
+  [PASS] set_disabled(false) 后恢复
+  [PASS] 重复 set_disabled(true) 幂等
+
+  -- 21b. SkillManager 数据库加载 --
+  [PASS] 技能 'earth_pony_strength' 存在
+  [PASS] 技能 'unicorn_magic_reach' 存在
+  [PASS] 技能 'pegasus_freedom' 存在
+  [PASS] 技能 'maud_prospect' 存在
+  [PASS] 技能 'maud_calm' 存在
+  [PASS] 技能 'sunburst_cristall_shine' 存在
+  [PASS] 技能 'trixie_magic_prop' 存在
+  [PASS] 技能 'trixie_fragile_pride' 存在
+  [PASS] create_skill 返回实例
+  [PASS] create_skill id 正确
+  [PASS] create_skill 返回独立实例
+WARNING: SkillManager: 技能 'nonexistent' 不存在
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] create_skill (res://source_codes/skills/skill_manager.gd:65)
+         [1] _test_skill_manager_load (res://test/test_runner.gd:1141)
+         [2] _test_skills_all (res://test/test_runner.gd:1071)
+         [3] _run_all_tests (res://test/test_runner.gd:85)
+         [4] _ready (res://test/test_runner.gd:48)
+  [PASS] create_skill 不存在返回 null
+
+  -- 21c. 蛮力（earth_pony_strength） --
+  [PASS] id 正确
+  [PASS] category=Species
+  [PASS] skill_type=Passive
+  [PASS] enabled 默认 true
+  [PASS] 蛮力骰子 1-6
+  [PASS] 蛮力加成 0 或 1
+  [PASS] 蛮力加成与骰子结果一致
+  [PASS] inform_next_action 传递 strength_bonus
+  [PASS] reset dice_result 清零
+  [PASS] reset strength_bonus 清零
+
+  -- 21d. 魔法触及（unicorn_magic_reach） --
+  [PASS] id 正确
+  [PASS] category=Species
+  [PASS] skill_type=Passive
+  [PASS] on_attach 设 meta attack_range_bonus
+  [PASS] attack_range_bonus = 1
+  [PASS] on_detach 移除 meta
+  [PASS] 失效时 on_attach 不设 meta
+
+  -- 21e. 自由翱翔（pegasus_freedom） --
+  [PASS] id 正确
+  [PASS] category=Species
+  [PASS] on_attach 设 terrain_immune
+  [PASS] 默认免疫=true
+  [PASS] set_terrain_enabled(true) → immune=false
+  [PASS] is_terrain_enabled()=true
+  [PASS] set_terrain_enabled(false) → immune=true
+  [PASS] on_detach 移除 terrain_immune
+
+  -- 21f. 冷静（maud_calm） --
+  [PASS] id 正确
+  [PASS] category=Character
+  [PASS] skill_type=Passive
+  [PASS] CalmRollExecute roll1 初始 0
+  [PASS] CalmRollExecute roll2 初始 0
+  [PASS] CalmRollExecute chosen 初始 0
+  [PASS] CalmRollExecute roll1 赋值
+  [PASS] CalmRollExecute roll2 赋值
+  [PASS] CalmRollExecute chosen 赋值
+  [PASS] reset roll1 清零
+  [PASS] reset roll2 清零
+  [PASS] reset chosen 清零
+
+  -- 21g. 勘探（maud_prospect） --
+  [PASS] id 正确
+  [PASS] category=Character
+  [PASS] skill_type=Active
+  [PASS] max_uses_per_turn=1
+  [PASS] ProspectEntry prospect_activated 赋值
+  [PASS] ProspectEntry reset 清零
+  [PASS] ProspectEffect 无 player 不崩溃
+
+  -- 21h. 水晶洗礼（sunburst_cristall_shine） --
+  [PASS] id 正确
+  [PASS] category=Character
+  [PASS] skill_type=Active
+  [PASS] needs_target=true
+  [PASS] ignore_distance=true
+  [PASS] add_mark 设 meta crystal_marks
+  [PASS] 首次 add_mark count=1
+  [PASS] 二次 add_mark count=2
+  [PASS] CrystalShineExecute 无卡牌不崩溃
+  [PASS] clear_all_marks 清除 meta
+  [PASS] on_detach 清除印记
+
+  -- 21i. 恢复链 HealEntry → HealExecute --
+  [PASS] HealEntry → HealExecute 传 heal_amount
+  [PASS] HealExecute 加血 5+5=10
+  [PASS] HealExecute 不超过 max_health
+  [PASS] 实际恢复量=2
+  [PASS] HealEntry reset
+  [PASS] HealExecute reset
+
+  -- 21k. 魔术道具（trixie_magic_prop） --
+  [PASS] id 正确
+  [PASS] category=Character
+  [PASS] skill_type=Active
+  [PASS] needs_target=false
+  [PASS] needs_card_discard=false
+  [PASS] TrixieMagicPropAction 实例化
+  [PASS] chosen_damage_type 初始=-1
+  [PASS] card_to_discard 初始=null
+  [PASS] take_action 无卡牌不崩溃
+  [PASS] reset 后 chosen=-1
+  [PASS] inform_next_action 无 target 不崩溃
+  [PASS] MagicPropDiscard 实例化
+  [PASS] reserved_card 初始=null
+  [PASS] MagicPropDiscard take_action 不崩溃
+  [PASS] generation 匹配时弃牌，手牌-1
+  [PASS] 卡牌已从手牌移除
+  [PASS] generation 不匹配时不弃牌
+
+  -- 21l. 易碎骄傲（trixie_fragile_pride） --
+  [PASS] id 正确
+  [PASS] category=Character
+  [PASS] skill_type=Passive
+  [PASS] needs_target=false
+  [PASS] 易碎骄傲默认启用
+  [PASS] set_disabled(true) 已禁用
+  [PASS] set_disabled(false) 恢复
+
+  -- 21n. 派对大炮（party_cannon） --
+  [PASS] id 正确
+  [PASS] category=Equipment
+  [PASS] skill_type=Passive
+  [PASS] PartyCannonRecovery 实例化
+  [PASS] take_action 不崩溃
+  [PASS] PartyCannonResult 实例化
+  [PASS] take_action 不崩溃
+  [PASS] reset 后 _success=false
+
+  -- 21o. 法杖魔力灌注（staff_magic_conversion） --
+  [PASS] id 正确
+  [PASS] category=Equipment
+  [PASS] skill_type=Passive
+  [PASS] on_attach 设 meta equip_staff_magic
+  [PASS] meta 值为 true
+  [PASS] on_detach 移除 meta
+
+  -- 21m. DiceFailureTrigger --
+  [PASS] DiceFailureTrigger 实例化
+  [PASS] take_action 无树不崩溃
+  [PASS] reset_property 不崩溃
+
+  -- 21j. 地形系统 --
+  [PASS] 森林地形已注册
+  [PASS] 雪地地形已注册
+  [PASS] 无地形格子查询 false
+  [PASS] 进入森林设 attack_range_mod
+  [PASS] 森林 attack_range_mod=-1
+  [PASS] 离开森林移除 attack_range_mod
+  [PASS] 进入雪地设 blocks_recovery
+  [PASS] 雪地阻止恢复牌
+  [PASS] 离开雪地移除 blocks_recovery
+  [PASS] 空地不阻止恢复
+  [PASS] 天马免疫森林效果
+
+============================================================
+  测试结果: 通过 255, 失败 0, 总计 255
+  状态: 全部通过 ✓
+============================================================
+WARNING: 5 RIDs of type "CanvasItem" were leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2735)
+WARNING: 51 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 20 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

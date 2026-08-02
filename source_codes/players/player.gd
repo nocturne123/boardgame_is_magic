@@ -260,7 +260,8 @@ func get_hand_size() -> int:
     return hand.size()
 
 func is_hand_at_max_capacity() -> bool:
-    return hand.size() >= max_hand_size
+    # 规则 5.3：手牌上限 6 张（max_hand_sequence_num），弃到 6 张后回合结束
+    return hand.size() >= max_hand_sequence_num
 
 
 # ============================================================

@@ -10,14 +10,14 @@ A My Little Pony fan-made turn-based tactical card battler on a hexagonal grid, 
 
 ## Running the Game
 
-Godot binary is at `../Godot_v4.6.3-stable_win64.exe` (relative to project root). All commands run from the project root.
+Godot binary is at `../Godot_v4.7.1-stable_linux.x86_64` (relative to project root). All commands run from the project root.
 
 ```bash
 # Interactive HUD battle — this is the active development scene
-../Godot_v4.6.3-stable_win64.exe --path .
+../Godot_v4.7.1-stable_linux.x86_64 --path .
 
 # Headless unit test suite
-../Godot_v4.6.3-stable_win64.exe --headless --path . test/test_runner.tscn
+../Godot_v4.7.1-stable_linux.x86_64 --headless --path . test/test_runner.tscn
 ```
 
 The headless test output can be redirected: `... --headless ... test/test_runner.tscn > test/test.txt`
@@ -173,7 +173,7 @@ The headless test output can be redirected: `... --headless ... test/test_runner
 
 ## Architecture Rules (编码硬性规约)
 
-> 以下 12 条规则为不可违反的硬性约束。每条规则标注违反检查点，用于 code review。
+> 以下 15 条规则为不可违反的硬性约束。每条规则标注违反检查点，用于 code review。
 
 ### R1. HudBattle 禁止修改 Player 战斗状态
 
@@ -231,7 +231,10 @@ func on_attach(player):
 func on_attach(player):
     var tree = player.get_node("ActionTree")
     var use_card = tree.get_node("UseCard")
-    use_card.inform_next_action = _my_roll_entry  # 插入节点
+    # 插入自己的节点：保存原下游 → 插入 → 接回（R13/R15）
+    _saved_next = use_card.next_action
+    use_card.next_action = _my_entry
+    _my_entry.next_action = _saved_next
 ```
 
 **检查点**：技能 .gd 文件中不应出现 `connect()` 连接 Player 或 ActionTree 的信号来触发技能效果（`disabled_changed` 信号用于 HUD 更新，不算违规）。
@@ -258,7 +261,7 @@ func on_attach(player):
 
 **规则**：`CardManager.shuffle_draw_pile` 默认 `false`，按 JSON 文件中的顺序抽牌。需要洗牌时显式设为 `true`。
 
-**检查点**：`card_manager.gd` 中 `shuffle_draw_pile` 默认值必须为 `false`。`normal_drawpile.json` 中的卡牌顺序即为抽牌顺序。
+**检查点**：`card_manager.gd` 中 `shuffle_draw_pile` 默认值必须为 `false`。`source_codes/data/cardpile/hudbattle_pile/drawpile_database.json` 中的卡牌顺序即为抽牌顺序。
 
 ### R12. 初始化不走 ActionTree
 
@@ -310,9 +313,18 @@ tree.roll_dice_execute.take_action()
 entry.dice_result = tree.roll_dice_execute.dice_result
 ```
 
-**例外**：启动 `heal_entry` 之类永不暂停的链可以接受——但必须确认目标链中所有节点都不会设 `waiting = true`。
+**例外**：启动 `heal_entry` 之类永不暂停的链可以接受——但必须确认目标链中所有节点都不会设 `waiting = true`。**且必须保存/恢复外层链状态**：
 
-**检查点**：在所有 `take_action()` 方法中搜索 `chain_of_actions`，除已确认不可暂停的链外均为违规。
+```gdscript
+# ✓ 合规：嵌套链前保存 _current_chain_action，跑完恢复
+var saved: BaseAction = tree._current_chain_action
+tree.chain_of_actions(tree.heal_entry)
+tree._current_chain_action = saved
+```
+
+已应用此防护的节点：`LivingUpdate`（晕厥启动 heal 链）、`CrystalMarkTrigger`（印记触发真实伤害链）、`UseBaseplay`（攻击伤害链，保护目标=自己时的同树嵌套）。注意 `var saved: BaseAction` 必须显式类型——`tree` 来自 `get_node_or_null()` 返回 Variant，`:=` 无法推断。
+
+**检查点**：在所有 `take_action()` 方法中搜索 `chain_of_actions`，除已确认不可暂停且带保存/恢复防护的链外均为违规。
 
 ### R15. 节点插入必须保留下游
 
@@ -386,6 +398,7 @@ source_codes/data/
 - `attack_range: int = 1` — 基础攻击距离，武器 `on_equip` 写入，`on_unequip` 重置为 1。RangeCheck 读取此值+meta计算有效距离。
 - `armor: int = 0` — 可消耗吸收层，setter clamp 到 0-4。角色初始化默认 0，character_database.json 不含此字段。
 - Hand management: `add_card_to_hand()`, `remove_card_from_hand()`, signals `card_added_to_hand`, `card_removed_from_hand`, `hand_updated`.
+- **手牌上限**: `max_hand_sequence_num = 6`（规则 5.3，`is_hand_at_max_capacity()` 据此判断）。`max_hand_size = 10` 是插件布局字段（hand_pile_setting 组），**不**用于上限判断。抽牌/事件后抽牌均受 6 张上限约束。
 - Equipment methods: `_add_to_slot()`, `_remove_from_slot()`, `move_to_collection_slot()`, `move_from_collection_to_slot()`, `is_slot_occupied_by_collection()`, `is_collection_item()`, `get_equipment_in_slot()`, `has_equipment_in_slot()`.
 - Equipment signals: `equipment_changed(slot: EquipmentSlotType)`.
 - **Skill management**: `skills: Array[SkillData]`, `add_skill(skill)` (调 `skill.on_attach(self)`), `remove_skill(skill)` (调 `skill.on_detach(self)`), `get_skills()`, `has_skill(id)`. Signals: `skill_added`, `skill_removed`.
@@ -415,7 +428,7 @@ Active actions:
 
 | 动作 | 触发方式 | 说明 |
 |------|---------|------|
-| `UseCard` | HudBattle 选牌+点击目标 | **调度器**：`inform_next_action()` 按 `is BaseEquipment`/`is BaseEffect`/`type=="Event"` 分发到子节点。Attack 牌按 `needs_range_check` 路由经 RangeCheck |
+| `UseCard` | HudBattle 选牌+点击目标 | **调度器**：`inform_next_action()` 按 `is BaseEquipment`/`is BaseEffect`/`type=="Event"` 分发到子节点。Attack/Steal/Event 牌固定走 RangeCheck（`_calc_attack_range` 计算范围）；非攻击牌按 `needs_range_check` 路由 |
 | `RangeCheck` | UseCard/UseSkill 按需路由 | **复用距离校验**：`cube_distance(source, target) > max_range` 时阻断链。参数由上游注入 |
 | `UseSkill` | HudBattle 技能激活 | **主动技能统一入口**：`inform_next_action()` 按 `skill.needs_target`/`ignore_distance` 决定是否走 RangeCheck，然后路由到技能专属 action |
 | `UseEquipment` | UseCard 分发 | 收藏品占用检查（同类型装备即使为收藏品也允许替换）→ `execute()` 装备 + 技能挂接 → 旧牌处理（收藏品进 Collection 槽，非收藏品进弃牌堆） |
@@ -435,8 +448,9 @@ Active actions:
 | `HealExecute` | 恢复链生效 | 修改 player.health（不超 max_health），记录实际恢复量传给下游 |
 | `CrystalMarkTrigger` | 水晶洗礼动态插入 | 恢复链最后一环：检查 meta `crystal_marks`，有则移除后造成等量真实伤害链 |
 | `CrystalShineExecute` | 水晶洗礼主动使用 | 弃置一张手牌 + 调用 skill.add_mark(target)。由 HudBattle 在点技能→选目标后触发 |
+| `AddMoveChance` | 魔术道具效果牌路径 | 增加 `move_chance_in_turn` 次数。HudBattle 动态加载脚本创建（R1/R2 合规：不直接在 HUD 改战斗状态） |
 
-`UseCard` 的四个子节点（UseEquipment / UseEffect / UseBaseplay / UseEventCard）由 `UseCard._ready()` 动态创建。其他动作节点若场景中不存在，由 `EquipmentBar._send_action()` / `EquipmentBar._get_or_create_action()` 动态加载脚本创建。
+`UseCard` 的四个子节点（UseEquipment / UseEffect / UseBaseplay / UseEventCard）由 `UseCard._ready()` 动态创建。其他动作节点若场景中不存在，由 `EquipmentBar._send_action()` / `EquipmentBar._get_or_create_action()` 动态加载脚本创建；`AddMoveChance` 由 HudBattle 在魔术道具效果牌路径动态加载创建。
 
 ### Skill System (`skills/`)
 
@@ -526,14 +540,21 @@ UseSkill（水晶洗礼）:
 - `BaseEquipment.on_equip` / `on_unequip` 遍历 `skill_ids`，调 `player.add_skill()` / `player.remove_skill()`
 - 子类的 `on_equip` 调 `super` 继承技能挂接
 
-**技能库 JSON** (`data/skill_database.json`):
+**技能库 JSON**（已按来源拆分，由 SkillManager.load_databases 合并加载）：
+- 种族技能: `data/character/species_skill_database.json`
+- 角色技能: `data/character/earthpony/earthpony_skill_database.json`、`data/character/unicorn/unicorn_skill_database.json`、`data/character/pegasus/pegasus_skill_database.json`、`data/character/alicorn/alicorn_skill_database.json`
+- 装备技能: `data/normalcard/weapon/weapon_skill_database.json`、`data/normalcard/armor/armor_skill_database.json`、`data/normalcard/element/element_skill_database.json`
 ```json
 [{"id": "...", "nice_name": "...", "category": "Species|Character|Equipment",
    "skill_type": "Active|Passive", "description": "...", "script_path": "res://...",
    "ignore_distance": false, "range": -1, "cooldown": 0, "max_uses_per_turn": 0, "needs_target": false}]
 ```
 
-**角色库 JSON** (`data/character_database.json`):
+**角色库 JSON**（已按种族拆分，由 HudBattle._setup_players() 合并加载）：
+- `data/character/earthpony/earthpony_database.json`
+- `data/character/unicorn/unicorn_database.json`
+- `data/character/pegasus/pegasus_database.json`
+- `data/character/alicorn/alicorn_database.json`
 ```json
 [{"name": "灰琪", "species": "EarthPony", "max_health": 14, "speed": 1,
    "physical_ability": 2, "magic_ability": 1, "mental_ability": 1,
@@ -745,7 +766,7 @@ Full rulebook v4.1 in Chinese. Covers: win conditions, turn phases, terrain effe
 
 ### Tests (`test/`)
 
-212 tests across 21 categories. Run: `../Godot_v4.6.3-stable_win64.exe --headless --path . test/test_runner.tscn`
+255 tests across 36 test functions. Run: `../Godot_v4.7.1-stable_linux.x86_64 --headless --path . test/test_runner.tscn`
 
 Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_test_*()` methods, `_assert(condition, name, detail)`.
 

@@ -65,6 +65,9 @@ var _move_range: Array[Vector2i] = []
 var _active_skill: SkillData = null
 var _magic_prop_card: CardData = null  # 魔术道具选中的弃牌
 
+## 当前暂停等待 HUD 交互的链动作（用于右键取消恢复）。
+var _paused_chain_action: BaseAction = null
+
 
 # ============================================================
 # 入口
@@ -613,6 +616,7 @@ func _on_global_effect_removed(effect: GlobalEffect) -> void:
 # ---- Chain 暂停处理（技能 HUD 交互）----
 
 func _on_chain_paused(action: BaseAction) -> void:
+    _paused_chain_action = action
     var script_path = action.get_script().resource_path
     match script_path:
         "res://source_codes/skills/actions/prospect_entry.gd":
@@ -629,17 +633,31 @@ func _on_chain_paused(action: BaseAction) -> void:
                 _update_all_ui()
 
 
+## 右键取消暂停的链：恢复默认参数后 resume，链自然走到结束（不执行效果）。
+func _cancel_paused_chain() -> void:
+    if _paused_chain_action == null:
+        return
+    var action: BaseAction = _paused_chain_action
+    _paused_chain_action = null
+    var tree = action.get_parent()
+    if tree and tree.has_method("resume_chain"):
+        tree.resume_chain()
+        _update_all_ui()
+
+
 func _show_prospect_dialog(entry: BaseAction) -> void:
     var overlay := _create_dialog_overlay("勘探", "是否使用勘探？(少摸1张牌)")
     var tree = entry.get_parent()
     _add_dialog_button(overlay, "是", func():
         entry.prospect_activated = true
+        _paused_chain_action = null
         overlay.queue_free()
         if tree: tree.resume_chain()
         _update_all_ui()
     )
     _add_dialog_button(overlay, "否", func():
         entry.prospect_activated = false
+        _paused_chain_action = null
         overlay.queue_free()
         if tree: tree.resume_chain()
         _update_all_ui()
@@ -651,12 +669,14 @@ func _show_dice_choice_dialog(calm: BaseAction) -> void:
     var tree = calm.get_parent()
     _add_dialog_button(overlay, str(calm.roll1), func():
         calm.chosen = calm.roll1
+        _paused_chain_action = null
         overlay.queue_free()
         if tree: tree.resume_chain()
         _update_all_ui()
     )
     _add_dialog_button(overlay, str(calm.roll2), func():
         calm.chosen = calm.roll2
+        _paused_chain_action = null
         overlay.queue_free()
         if tree: tree.resume_chain()
         _update_all_ui()
@@ -934,7 +954,6 @@ func _execute_active_skill(skill: SkillData, target: Player) -> void:
         _magic_prop_card = null
     elif selected_card:
         use_skill.card_to_discard = selected_card.card_data
-        use_skill.card_to_discard = selected_card.card_data
     tree.chain_of_actions(use_skill as BaseAction)
     _active_skill = null
     _reset_selection()
@@ -1102,6 +1121,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
     # === 右键：取消一切，清空面板 ===
     if event.button_index == MOUSE_BUTTON_RIGHT:
+        # 优先取消暂停中的技能链（勘探/冷静/魔术道具对话框）——避免回合卡死
+        if _paused_chain_action:
+            _cancel_paused_chain()
+            get_viewport().set_input_as_handled()
+            return
         if _move_mode:
             _exit_move_mode()
             _update_all_ui()
@@ -1230,18 +1254,29 @@ func _show_attack_type_dialog(action: BaseAction) -> void:
     var tree = action.get_parent()
     _add_dialog_button(overlay, "物理", func():
         action.chosen_damage_type = Damage.DamageType.Physical
+        _paused_chain_action = null
         overlay.queue_free()
         if tree: tree.resume_chain()
         _update_all_ui()
     )
     _add_dialog_button(overlay, "法术", func():
         action.chosen_damage_type = Damage.DamageType.Magic
+        _paused_chain_action = null
         overlay.queue_free()
         if tree: tree.resume_chain()
         _update_all_ui()
     )
     _add_dialog_button(overlay, "心理", func():
         action.chosen_damage_type = Damage.DamageType.Mental
+        _paused_chain_action = null
+        overlay.queue_free()
+        if tree: tree.resume_chain()
+        _update_all_ui()
+    )
+    # 取消：chosen_damage_type 保持 -1，inform_next_action 检测到 <0 直接 return，链自然结束
+    _add_dialog_button(overlay, "取消", func():
+        action.chosen_damage_type = -1
+        _paused_chain_action = null
         overlay.queue_free()
         if tree: tree.resume_chain()
         _update_all_ui()
@@ -1290,7 +1325,18 @@ func _show_magic_prop_card_dialog(skill: SkillData) -> void:
                 controller.remove_card_from_hand(cd)
                 if controller.card_manager:
                     controller.card_manager.receive_into_discard(cd)
-                controller.move_chance_in_turn += 1
+                # R1/R2 合规：移动次数通过 ActionTree 修改，不直接在 HUD 改
+                var tree: Node = controller.get_node_or_null("ActionTree")
+                if tree:
+                    var add_move := tree.get_node_or_null("AddMoveChance")
+                    if add_move == null:
+                        var scr := load("res://source_codes/players/actions/AddMoveChance.gd")
+                        if scr:
+                            add_move = scr.new()
+                            add_move.name = "AddMoveChance"
+                            tree.add_child(add_move)
+                    if add_move:
+                        tree.chain_of_actions(add_move as BaseAction)
                 overlay.queue_free()
                 _log("[color=#60f060]弃置 [%s]，增加 1 次移动机会[/color]" % cd.nice_name)
                 _update_all_ui()
