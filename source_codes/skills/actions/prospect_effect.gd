@@ -10,9 +10,11 @@ func take_action():
     var tree = get_parent() as ActionTree
     if tree == null:
         return
-    var entry = tree.get_node_or_null("ProspectEntry")
-    if entry == null or not entry.prospect_activated:
+    # 读 ActionTree 上的临时标记（ProspectEntry.inform_next_action 写入）。
+    # 不能读 entry.prospect_activated —— 它在本节点执行前已被 reset_property 清零。
+    if not tree.get_meta("prospect_active_this_turn", false):
         return
+    tree.set_meta("prospect_active_this_turn", false)   # 消费后立即清除
 
     var cm = player.card_manager
     if cm == null:
@@ -30,7 +32,11 @@ func take_action():
     if has_match:
         var cards = cm.take_from_draw_pile(2)
         for c in cards:
-            if not player.is_hand_at_max_capacity():
+            if player.is_hand_at_max_capacity():
+                # 手牌已满：牌已离开抽牌堆，必须进弃牌堆，否则凭空消失
+                if player.card_manager:
+                    player.card_manager.receive_into_discard(c)
+            else:
                 player.add_card_to_hand(c)
         _effect_text = "%s 勘探成功，额外抽了 2 张牌" % player.player_name
     else:

@@ -28,12 +28,15 @@ func inform_next_action() -> void:
     match chosen_damage_type:
         Damage.DamageType.Physical:
             virtual_card.damage_type = Damage.DamageType.Physical
+            virtual_card.ability_name = "physical_ability"
             type_name = "物理"
         Damage.DamageType.Magic:
             virtual_card.damage_type = Damage.DamageType.Magic
+            virtual_card.ability_name = "magic_ability"
             type_name = "法术"
         Damage.DamageType.Mental:
             virtual_card.damage_type = Damage.DamageType.Mental
+            virtual_card.ability_name = "mental_ability"
             type_name = "心理"
     virtual_card.nice_name = "魔术道具(%s)" % type_name
 

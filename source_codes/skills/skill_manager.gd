@@ -74,6 +74,11 @@ func create_skill(id: String) -> SkillData:
             if key.name in ["resource_local_to_scene", "resource_path", "script",
                             "meta", "disabled_changed"]:
                 continue
+            # 跳过以下划线开头的运行时状态（_inserted_nodes / _disabled 等）。
+            # 它们是 Array/引用类型，被复制会让所有实例共享同一份运行时状态：
+            # 任一技能 on_detach 会 free 掉其它技能插入的节点。
+            if key.name.begins_with("_"):
+                continue
             new_skill.set(key.name, template.get(key.name))
         return new_skill
     return template

@@ -10,6 +10,12 @@ func take_action():
     waiting = true
 
 func inform_next_action():
+    # 后续节点（DrawCard / ProspectEffect）需要知道玩家是否选了勘探。
+    # 不能依赖 prospect_activated —— ActionTree 会在 inform_next_action 之后
+    # 立刻调 reset_property() 把它清零，ProspectEffect 读到时永远是 false。
+    var tree := get_parent() as ActionTree
+    if tree != null:
+        tree.set_meta("prospect_active_this_turn", prospect_activated)
     if prospect_activated and next_action and next_action.get("draw_num") != null:
         next_action.draw_num = max(player.draw_stage_card_number - 1, 0)
     elif next_action and next_action.get("draw_num") != null:

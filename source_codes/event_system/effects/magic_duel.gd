@@ -24,5 +24,9 @@ class MagicDuelCard extends CardData:
             var target_tree = target.get_node_or_null("ActionTree")
             if target_tree and target_tree.get("receive_damage") != null:
                 target_tree.receive_damage.damage = damage
+                # R14 保护：target 可能等于 source（同树嵌套），
+                # 嵌套链会覆盖 _current_chain_action，跑完必须恢复外层链状态
+                var saved: BaseAction = target_tree._current_chain_action
                 target_tree.chain_of_actions(target_tree.receive_damage)
+                target_tree._current_chain_action = saved
         return true

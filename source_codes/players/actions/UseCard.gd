@@ -32,6 +32,12 @@ func inform_next_action() -> void:
     if card == null:
         return
 
+    # 魔术道具的攻击被 RangeCheck 阻断时，临时挂在 UseBaseplay 之后的
+    # MagicPropDiscard 会残留在链上。若本次打出的是普通牌（非魔术道具虚拟牌），
+    # 必须先清扫它，否则它会在这次攻击结束时把上次预留的手牌白白弃掉。
+    if not card.identity.begins_with("__"):
+        _sweep_stale_magic_prop()
+
     # 1. 确定执行子节点
     var child: BaseAction = null
     if card is BaseEquipment:
@@ -95,6 +101,19 @@ func inform_next_action() -> void:
             return
     next_action = child
 
+## 清扫残留的 MagicPropDiscard 一次性节点，并恢复 UseBaseplay 的原始链。
+## 只有魔术道具的攻击成功走完才会由该节点自行清理；被 RangeCheck 阻断时会残留。
+func _sweep_stale_magic_prop() -> void:
+    var tree := get_parent() as ActionTree
+    if tree == null:
+        return
+    var ubp := get_node_or_null("UseBaseplay") as UseBaseplay
+    for child in tree.get_children():
+        if child is MagicPropDiscard:
+            if ubp != null and ubp.next_action == child:
+                ubp.next_action = child.restore_next
+            child.queue_free()
+
 func _get_range_check() -> RangeCheck:
     var tree := get_parent() as ActionTree
     if tree:
@@ -107,7 +126,8 @@ func _calc_attack_range(p: Player) -> int:
     var tm = p.get_meta("terrain_manager")
     if tm:
         r += tm.get_attack_range_mod(p)
-    return max(r, 1)
+    # 规则 十三：无武器时攻击范围为 0；森林 -1 后最小为 0（游戏规则.md:125 / :238）
+    return max(r, 0)
 
 func _get_strength_skill(p: Player) -> SkillData:
     for s in p.skills:

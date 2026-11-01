@@ -49,6 +49,8 @@ signal move_requested(target_cell: Vector2i)
 # ---- 运行时数据 ----
 var players: Array[Player] = []
 var _player_teams: Dictionary = {}  # {Player: team_id}
+## 已播报过"被淘汰"的玩家，避免 _check_victory 每次刷新重复写日志
+var _eliminated_logged: Dictionary = {}
 var tile_hud: TilemapHUD
 
 # ---- 交互状态 ----
@@ -459,10 +461,14 @@ func _input(event: InputEvent) -> void:
 
 func _on_turn_started(controller: Player) -> void:
     if controller == player_b:
-        # 灰琪是木桩，自动跳过回合
+        # 灰琪是木桩：不启动回合链，直接跳到下一位。
+        # （若先启动链，勘探会在这里 waiting=true 暂停，而回合已被跳走 → 链被遗弃）
         turn_mgr.end_current_turn()
         return
-    # TurnManager 已触发 TurnStart→DrawCard 链，抽牌由链自动完成
+    # 回合链由 HUD 启动（TurnManager 只发信号，不直接调用 ActionTree 动作节点）
+    var tree: Node = controller.get_node_or_null("ActionTree")
+    if tree != null and tree.get("turn_start") != null:
+        tree.chain_of_actions(tree.turn_start)
     _log("%s 的回合开始，抽 %d 张牌" % [controller.player_name, controller.draw_stage_card_number])
     _update_all_ui()
 
@@ -506,6 +512,8 @@ func _update_hand_display() -> void:
 
 
 func _do_update_hand_display() -> void:
+    # 所有 CardSprite 都会重建 → 旧的 selected_card 引用会悬空，必须先清空
+    selected_card = null
     hand_fan.clear_cards()
 
     var controller := turn_mgr.get_current_player()
@@ -567,11 +575,15 @@ func _update_equipment() -> void:
 
 
 func _check_victory() -> void:
-    # 检测死亡玩家并从轮转列表中移除（remove_player 幂等，重复调用无害）
+    # 检测死亡玩家并从轮转列表中移除。
+    # remove_player 幂等，但 _log 不幂等 —— 用集合记录已处理过的玩家，避免每次刷新重复打印。
     for p in players:
-        if p.living_state == Player.LivingState.Dead:
+        if p.living_state == Player.LivingState.Dead and not _eliminated_logged.has(p):
+            _eliminated_logged[p] = true
             turn_mgr.remove_player(p)
             _log("\n[color=#f06060][b]%s 被淘汰！[/b][/color]" % p.player_name)
+        elif p.living_state == Player.LivingState.Dead:
+            turn_mgr.remove_player(p)   # 幂等，保持轮转列表正确
 
     # 胜利条件：最后存活
     var alive := turn_mgr.get_alive_count()
@@ -601,6 +613,10 @@ func _on_player_repositioned(p: Player, cube_pos: Vector3i) -> void:
     p.cube_position = cube_pos
     p.map_position = map_node.cube_to_map(cube_pos)
     p.position = _tile_to_canvas_pos(p.map_position)
+    # 事件传送也要走地形钩子，否则被传进森林/雪地不触发地形，
+    # 且 TerrainManager 记录的旧格子会让下次移动结算错格
+    if terrain_mgr != null:
+        terrain_mgr.on_player_moved(p, p.map_position)
 
 
 func _on_global_effect_added(effect: GlobalEffect) -> void:
@@ -730,8 +746,8 @@ func _add_dialog_button(overlay: PanelContainer, text: String, callback: Callabl
 # ---- 胜利弹窗 ----
 
 func _show_victory_popup(winner_name: String, reason: String) -> void:
-    if has_node("VictoryOverlay"):
-        return  # 已显示
+    if card_layer.has_node("VictoryOverlay"):
+        return  # 已显示（overlay 是 card_layer 的子节点，不是 HudBattle 的子节点）
 
     var overlay := PanelContainer.new()
     overlay.name = "VictoryOverlay"
@@ -971,7 +987,11 @@ func _toggle_terrain_immune(skill: SkillData) -> void:
         terrain_mgr.on_player_moved(controller, controller.map_position)
     else:
         _log("[color=#88ccff]%s 选择免疫地形效果[/color]" % controller.player_name)
-        controller.remove_meta("terrain_attack_range_mod")
+        # 转为免疫：主动清理当前地形留下的 meta。地形状态只应由 TerrainEffect 维护，
+        # 这里两个 meta 都必须清，只清 attack_range_mod 会把雪地的禁疗标记永久留下。
+        for key in ["terrain_attack_range_mod", "terrain_blocks_recovery"]:
+            if controller.has_meta(key):
+                controller.remove_meta(key)
         controller.remove_meta("terrain_blocks_recovery")
     _update_all_ui()
 
