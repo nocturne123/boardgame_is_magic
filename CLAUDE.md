@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A My Little Pony fan-made turn-based tactical card battler on a hexagonal grid, built with **Godot 4.7** (GDScript). Interactive battle prototype — two characters (灰琪 Maud Pie vs 日光耀耀 Sun Burst) in `hud_battle.tscn` with full HUD, card play, hex movement, turn management, equipment system, skill system, and event system.
+A My Little Pony fan-made turn-based tactical card battler on a hexagonal grid, built with **Godot 4.7** (GDScript). Interactive battle prototype — two characters (特丽克西 Trixie vs 灰琪 Maud Pie) in `hud_battle.tscn` with full HUD, card play, hex movement, turn management, equipment system, skill system, and event system.
 
 **Addons** (under `addons/`): hexagon_tilemaplayer v2.5.2 | dialogue_manager v3.10.1 | vfx_library v1.0.0
 
@@ -59,8 +59,8 @@ The headless test output can be redirected: `... --headless ... test/test_runner
 │              │     │  MoveAction（单独触发）            │
 │              │     │  UseCard（单独触发，通过箭头交互） │
 └──────┬───────┘     └──────────────┬──────────────────┘
-       │ turn_started               │ 读写 Player 数据
-       ▼                             ▼
+       │ turn_started 信号           │ 读写 Player 数据
+       │ （只发信号，不碰 Player）      ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                     Player (纯数据类)                          │
 │                                                             │
@@ -205,7 +205,7 @@ The headless test output can be redirected: `... --headless ... test/test_runner
 
 **规则**：新卡牌的 `type` 必须准确使用：Attack / Steal / Event / Effect / Recovery / Weapon / Armor / Element。不得复用 Attack 类型给非攻击牌。
 
-**检查点**：新增卡牌时检查 `card_database.json` 中的 `type` 字段与卡牌实际功能是否匹配。
+**检查点**：新增卡牌时检查 `source_codes/data/normalcard/<类型>/<类型>_database.json` 中的 `type` 字段与卡牌实际功能是否匹配（原 `card_database.json` 已拆分为 6 个文件）。
 
 ### R6. 坐标系转换属于 HudBattle
 
@@ -378,10 +378,10 @@ source_codes/data/
     └── event_pile_database.json
 ```
 - Card creation via `CardManager.create_card(nice_name)` loads the script from `resource_script_path` and copies all JSON fields onto the new resource.
-- Card type hierarchy: `CardData` (Resource) → `Baseplay` / `BaseEquipment` → `BaseWeapon`, `BaseArmor`, `BaseElement` / `BaseEffect` → `BaseRecovery`, `Gem` | `Baseplay` → `BaseAttack` (物理/魔法/心理攻击的参数化基类) / `StealCard` / `EventTriggerCard` (事件触发牌)
+- Card type hierarchy: `CardData` (Resource) → `Baseplay` / `BaseEquipment`(`extends Baseplay`) → `BaseWeapon`, `BaseArmor`, `BaseElement` / `BaseEffect`(`extends Baseplay`) → `BaseRecovery`, `Gem` | `Baseplay` → `BaseAttack` (物理/魔法/心理攻击的参数化基类) / `StealCard` / `EventTriggerCard` (事件触发牌)
 - Cards use two execution paths: `execute(source, target, card_manager) -> bool` and `resolve(source, target) -> Variant`.
 - **CardData** has `skill_ids: Array[String]` field — 装备牌从 JSON 加载，装备时通过 `on_equip` 挂接对应技能。
-- **CardData** has `needs_range_check: bool` + `effective_range: int` — 非攻击牌的距离校验参数。Attack 类型自动走武器+meta计算。
+- **CardData** has `needs_range_check: bool` + `effective_range: int` — 非攻击牌的距离校验参数。⚠️ 当前**没有任何 JSON 使用这两个字段**（`UseCard` 走 `card.needs_range_check` 分支永远不成立），属预留特性。Attack/Steal/Event 类型自动走武器+meta计算。
 - **Equipment cards**: `execute()` equips to slot, sets `replaced_old_card`. `on_equip` / `on_unequip` hooks — 子类调 `super` 继承技能挂接，再做自己的属性加成。
 - **Weapon card** (花束/法杖): `on_equip` 写 `player.attack_range = attack_range`，`on_unequip` 重置为 1。
 - **法杖 (Staff)**: attack_range=2，附带可开关被动技能「魔力灌注」——点击技能槽切换，启用时所有攻击牌转为魔法攻击（type=Magic，num=magic_ability）。
@@ -402,7 +402,7 @@ source_codes/data/
 - Equipment methods: `_add_to_slot()`, `_remove_from_slot()`, `move_to_collection_slot()`, `move_from_collection_to_slot()`, `is_slot_occupied_by_collection()`, `is_collection_item()`, `get_equipment_in_slot()`, `has_equipment_in_slot()`.
 - Equipment signals: `equipment_changed(slot: EquipmentSlotType)`.
 - **Skill management**: `skills: Array[SkillData]`, `add_skill(skill)` (调 `skill.on_attach(self)`), `remove_skill(skill)` (调 `skill.on_detach(self)`), `get_skills()`, `has_skill(id)`. Signals: `skill_added`, `skill_removed`.
-- **Collection tracking**: `collection_completed: bool` (集齐 3 个收藏品时置 true), `_owned_collectible_ids: Array[String]` (去重), signal `collection_completed()`.
+- **Collection tracking**: `collection_completed: bool` (集齐 3 个收藏品时置 true), `_owned_collectible_ids: Array[String]` (去重), signal `collection_finished()`（注意：`collection_completed` 是 bool 字段，不是信号）。
 - **Does NOT contain**: draw/discard/apply_damage/move_chance logic (→ migrated to ActionTree actions).
 
 ### ActionTree (`players/actions/`)
@@ -518,15 +518,15 @@ UseSkill（水晶洗礼）:
 
 | 技能 | 类型 | 来源 | 链条修改方式 |
 |------|------|------|-------------|
-| 蛮力 | 被动（开关） | EarthPony 种族 | 在 UseCard→UseBaseplay 之间插入 StrengthRollEntry→StrengthRollExecute。默认开启，关闭后跳过掷骰 |
-| 魔法触及 | 被动 | Unicorn 种族 | on_attach 设 meta "attack_range_bonus"=1（攻击距离+1），on_detach 移除 |
+| 蛮力 | 被动（开关） | EarthPony 种族 | **模式二动态路由**：on_attach 只创建节点并写入 `use_card` meta，不改链。运行时 `UseCard.inform_next_action()` 在 **RangeCheck 之后、UseBaseplay 之前**插入 StrengthRollEntry→StrengthRollExecute。开关走 disabled 机制（`enabled` 字段实际无人读取） |
+| 魔法触及 | 被动 | Unicorn 种族 | on_attach 设 meta "attack_range_bonus"=1（攻击距离+1），on_detach 移除。读取点在 `UseCard._calc_attack_range()` 与 `PlayerInfoPanel`（**不是** RangeCheck） |
 | 自由翱翔 | 被动（开关） | Pegasus 种族 | on_attach 设 meta "terrain_immune"=true。点击技能槽切换地形免疫开关 |
 | 勘探 | 主动 | 灰琪角色 | 在 TurnStart→DrawCard 之间插入 ProspectEntry（暂停等 HUD 问是否使用），DrawCard 之后插入 ProspectEffect |
-| 冷静 | 被动 | 灰琪角色 | 替换 RollDiceExecute 为 CalmRollExecute（掷两次，暂停等 HUD 让玩家选，陆马种族判定不生效） |
+| 冷静 | 被动 | 灰琪角色 | **REPLACE `RollDiceEntry.next_action`** 为 CalmRollExecute（把 RollDiceExecute 挤出链，由 Calm 手动 `take_action()` 调用）。掷两次 + 暂停等 HUD 选。注意：陆马豁免的守卫是死分支（`purpose` 在它执行前已被 reset 清零） |
 | 水晶洗礼 | 主动 | 日光耀耀角色 | 弃手牌对目标 add_mark。首次标记时在目标 ActionTree 上动态插入 CrystalMarkTrigger 到 HealExecute 之后。技能失效/on_detach 时恢复链条+清除所有印记 |
 | 魔力灌注 | 被动（可开关） | 法杖装备 | 点击技能槽 toggle。启用时设 meta `equip_staff_magic`，UseBaseplay 读取后将攻击牌转为魔法伤害（type=Magic，num=magic_ability） |
 | 派对时间 | 被动（可开关） | 派对大炮装备 | 动态路由：UseBaseplay→PartyCannonRecovery→骰子链→PartyCannonResult。PartyCannonRecovery 临时挂 Result 到骰子链末端，Result 执行完后恢复骰子链原状。D6≥3 恢复 1 点体力 |
-| 魔术道具 | 主动 | 特丽克西角色 | 点技能→弹窗选牌（武器/防具/效果）。武器/防具：暂存卡牌→选攻击类型→创虚拟 BaseAttack 走 UseCard 全链→MagicPropDiscard 弃牌（generation 防残留）。效果：立即弃牌+移动+1 |
+| 魔术道具 | 主动 | 特丽克西角色 | 点技能→弹窗选牌（武器/防具/效果）。武器/防具：暂存卡牌→选攻击类型→创虚拟 BaseAttack 走 UseCard 全链→MagicPropDiscard 弃牌（generation 防残留）。⚠️ 效果牌分支仍写在 `hud_battle.gd:_activate_magic_prop` 里（违反 R7，待迁移） |
 | 易碎骄傲 | 被动 | 特丽克西角色 | 骰子链末端插入 DiceFailureTrigger，D6 结果<3 则自伤 1 点心理伤害
 
 **SkillManager** (`skills/skill_manager.gd`) — 节点，放在 `logic` 下:
@@ -535,7 +535,7 @@ UseSkill（水晶洗礼）:
 - `create_skill(id)` 返回新实例（挂接到 player 用）
 
 **装备技能挂接**:
-- `card_database.json` 中装备牌加 `skill_ids` 字段
+- `source_codes/data/normalcard/weapon|armor|element/*_database.json` 中装备牌加 `skill_ids` 字段
 - `CardData` 有 `skill_ids: Array[String]`
 - `BaseEquipment.on_equip` / `on_unequip` 遍历 `skill_ids`，调 `player.add_skill()` / `player.remove_skill()`
 - 子类的 `on_equip` 调 `super` 继承技能挂接
@@ -568,11 +568,14 @@ UseSkill（水晶洗礼）:
 
 ### Turn Manager (`turn_manager.gd`)
 
-存活玩家有序链表，player-relative 轮次计数。
+存活玩家有序链表，player-relative 轮次计数。**纯调度器：只发信号，不写 Player 任何字段、不触发 ActionTree 动作。**
 - `setup(players)` + `start_game(index)` → `turn_started` signal
 - `end_current_turn()` → `turn_ended` signal → `_advance_to_next_alive()` → `turn_started`
 - `remove_player(p)` — 玩家死亡时移除，`player_eliminated` 信号。只剩 1 人时 `last_player_standing` 信号
-- 胜利条件：最后存活（收藏品胜利条件已移除，`collection_completed` 信号仅记录日志）
+- 胜利条件：最后存活（`collection_finished` 信号仅记录日志）
+
+> **回合链归属**：`TurnStart → DrawCard → EventTriggerPhase` 由 **HudBattle 在 `_on_turn_started` 回调里**用 `chain_of_actions(turn_start)` 启动。
+> TurnManager 只负责 emit `turn_started`。木桩玩家（当前是灰琪）在 HUD 回调里直接 `end_current_turn()` 跳过，**不启动回合链**——否则勘探会在木桩身上 `waiting=true` 暂停，链被遗弃后污染下一个回合。
 
 ### Event System (`event_system/`)
 
@@ -729,7 +732,7 @@ HudLayer/HudContainer/Margin/MainVBox (sep=0)
 - SkillTray 内 SkillSlot — 通过 `equipment_bar._refresh_skills()` 动态增删
 - DiscardZone — 拖拽装备时滑入/滑出的弃置区
 - CrystalMarkTrigger — 水晶洗礼技能在目标 ActionTree 上动态创建/移除
-- UISplitter — 6 个可拖拽分割条（3 个 VSplitter + 2 个 HSplitter + 1 个 CardDetail/Log 之间的 VSplitter）
+- UISplitter — 5 个可拖拽分割条（TSplitter1 / HSplitter1 / HSplitter2 / VSplitter2(CardDetail↔Log) / VSplitter3）
 
 ### Equipment Bar (`equipment_bar.gd` + `equipment_slot.gd`)
 
@@ -772,36 +775,43 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 
 ---
 
-## Refactoring Status (2026-06-28)
+## Refactoring Status (2026-11-01)
 
-**本次更新已完成**：
-- 数据库拆分 + CardManager 多路径加载
-- hexagon_tilemaplayer UID 修复 + Godot 升级 4.7
-- 角色精灵 50 张（来自 mlpvector.club）
-- **攻击距离系统**：Player.attack_range + RangeCheck 节点
-- **技能系统重构**：UseSkill 节点 + SkillData.get_action_node()
-- **法杖武器牌**：attack_range=2 + 可开关「魔力灌注」
-- **派对大炮武器牌**：双节点拆分 + 骰子链临时挂接恢复
-- **特丽克西角色**：Unicorn 物1/法2/心2，收藏品法杖/帽子/护身符
-- **魔术道具技能**：点技能→弹窗选牌→虚拟 BaseAttack 走全链 + MagicPropDiscard（generation 防残留）
-- **易碎骄傲技能**：DiceFailureTrigger 骰子链末端，<3 自伤 1 心理
-- **玩家信息面板**：物攻/法攻/心攻 + 攻击距离
-- **技能 HUD 选牌对话框**：筛选武器/防具/效果 + 取消 + 攻击次数检查
-- **角色精灵 JSON 化**：texture_path 字段驱动
-- **hand_updated 信号连接**：手牌变化实时刷 UI
-- **测试**：+5 技能测试（魔术道具/易碎骄傲/派对大炮/法杖/DiceFailureTrigger）
+> 2026-11-01 做了一次全面通读审计（4 个子系统 + 核心 action 层逐行），修复了 2 个崩溃、
+> 3 个"功能完全失效"和一批架构/规则违规。完整清单见 `docs/audit-2026-11-01.md`。
 
-剩余未解决：
+**2026-11-01 已修复**：
+- **P0 崩溃**：手牌重建后 `selected_card` 悬空；魔法对决自伤时缺 R14 链状态保护
+- **P0 失效**：勘探效果永远不生效（`prospect_activated` 在效果节点执行前被 reset 清零）；
+  魔术道具选法术/心理仍按物理数值结算；被 RangeCheck 阻断的魔术道具会在下次普通攻击时白丢一张手牌
+- **架构**：R3 违规（TurnManager 写 `health_last_turn` 且直调 ActionTree）已归位；
+  `SkillManager.create_skill()` 复制 `_inserted_nodes` 导致跨实例共享节点数组；
+  胜利弹窗守卫查错节点导致层层叠加；灰琪跳过回合时遗弃暂停中的回合链
+- **规则**：森林/无武器攻击范围下限改为 0（原钳到 1）；抽牌方向改为 `pop_front()` 与 R11 一致；
+  51 张 Effect 牌的 `resource_script_path` 从 `base_play.gd` 改为 `base_effect.gd`；
+  `EventTrigger` 非法 type 改为 `Event`；真实伤害补 `ignore_armor`；`immune_from_steal` 真正生效
+- **防御**：`RangeCheck` 参数缺失时断链而非沿用陈旧 `next_action`；`UseBaseplay` 未生效时保留卡牌；
+  雪地禁疗给出日志反馈；`has_equipment_in_slot()` 不再被 null 占位误导；事件传送补地形钩子
+- **清理**：删除 4 个死文件（`player_contain.gd`、`card_layer.gd`、`player_layer.gd`、
+  `cards/play/event_trigger.gd`）
+
+**剩余未解决**：
 
 | 文件 | 事项 | 说明 |
 |------|------|------|
-| normalcard/effect_database.json + recovery_database.json | 51 张 Effect 牌 + 10 张 Recovery 牌 | 占位空壳，无实际 execute/resolve 逻辑 |
-| cardpile/hudbattle_pile/drawpile_database.json | 47 张（含 3 事件触发牌、法杖、派对大炮、宝石等） | 规则要求 148 张摸牌堆，需扩充 |
-| `EquipmentBar._swap_equipment` | 同类型拖拽交换占位 | 场景中每种槽只有 1 个，此路径暂不可达 |
-| 收藏品栏位拖拽 | 已实现 | `_swap_collection_slots()` 支持收藏品栏位间互换 + 空槽位移动 |
+| normalcard/effect/effect_database.json | 51 张 Effect 牌 | 基类接线已修正，但仍无实际 execute/resolve 逻辑（占位） |
+| normalcard/recovery/recovery_database.json | 10 张 Recovery 牌 | 空壳，`resolve` 返回 null |
+| cardpile/hudbattle_pile/drawpile_database.json | 47 张（含 2 事件触发牌、法杖、派对大炮、宝石等） | 规则要求 148 张；且武器位于索引 37/44/45，`pop_front()` 后开局 4 张全是物理攻击 |
+| `EquipmentBar._swap_equipment` | 同类型拖拽交换占位（`pass`） | 场景中每种槽只有 1 个，此路径暂不可达 |
 | 事件系统 HUD | 未实现 | 事件牌堆/弃牌堆 sprite、全局效果面板 UI |
-| 天马角色 | 未实装 | pegasus_freedom 技能已就绪，character_database 中暂无天马角色 |
-| Recovery 牌实现 | 空壳 | 10 张 Recovery 牌的 execute/resolve 为占位 |
+| 天马角色 | 未实装 | `pegasus_freedom` 就绪，角色库中暂无天马；龙卷供水事件因此 100% 空转 |
+| 收藏品悬空 id | 3 个 | 日光耀耀「魔法书」「眼镜」、特丽克西「帽子」在卡牌库中不存在 → 收藏品最多 2/3 |
+| 主动技能次数限制 | 未实现 | `max_uses_per_turn` / `cooldown` 只写不读，可与无限次使用 |
+| 魔术道具「效果」分支 | 违反 R7 | 仍写在 `hud_battle.gd` 而非技能层 |
+| `DurationType.CUSTOM` | 未实现 | 只有枚举与 JSON 解析，注册后永不过期 |
+| 大事件 20% 概率 | 未实现 | `EventDeck` 只有一个池，无大事件比例逻辑 |
+| `Player.is_selectable` | 声明未用 | 目标可选性未接到任何选择逻辑 |
+| 晕厥弃置收藏品 | 规则存疑 | 与 R9「收藏品永不进弃牌堆」冲突，需按规则书裁定 |
 
 ---
 
