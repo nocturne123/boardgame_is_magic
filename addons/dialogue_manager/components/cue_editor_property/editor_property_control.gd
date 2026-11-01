@@ -6,7 +6,7 @@ extends HBoxContainer
 signal cue_changed(next_cue: String)
 
 
-const CUE_ICON: Texture2D = preload("uid://d1aawtj2vsnxx")
+const CUE_ICON: Texture2D = preload("../../assets/cue.svg")
 
 
 var actionable: Node = null
