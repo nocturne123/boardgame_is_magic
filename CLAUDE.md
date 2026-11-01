@@ -245,11 +245,48 @@ func on_attach(player):
 
 **检查点**：`DecreaseHealth` 动作中，伤害应先扣除 `player.armor`，armor 归零后才扣 `player.health`。`player.armor` 的 setter 应 clamp 到 0-4。
 
-### R9. 收藏品不进弃牌堆
+### R9. 收藏品的离场规则（可弃置性随所在位置变化）
 
-**规则**：收藏品（`is_collection_item(identity)` 为 true 的卡牌）永远不进入弃牌堆。装备卸下时如果是收藏品，移到 Collection 槽位而非弃牌堆。
+**规则**：收藏品（`is_collection_item(identity)` 为 true 的卡牌）不因换位置而丢失身份，但**能否被弃置取决于它当前在哪**：
 
-**检查点**：`UnequipAction` 中，收藏品应触发 `unequip_blocked` 信号而非进入弃牌堆。`MoveEquipmentToCollection` / `EquipFromCollection` 按 `card_identity` 查找指定收藏品。
+| 所在位置 | 是否生效 | 能否主动弃置 | 被顶替时去哪 |
+|---|---|---|---|
+| **手牌** | 否 | ✅ 可以（普通弃牌，含回合末弃牌） | — |
+| **装备栏**（Weapon/Armor/Element） | ✅ 生效 | ❌ 不可以（唯一例外：晕厥） | → Collection 槽 |
+| **Collection 槽** | 否 | ❌ 不可以（已入账的收集进度） | 不适用 |
+
+收藏品只有三种离场方式：
+
+1. **手牌中被弃置** → 进入弃牌堆
+2. **在装备栏被顶替** → 移入 Collection 槽（**不进弃牌堆**）
+3. **晕厥时被弃置** → 进入弃牌堆（规则书八：晕厥且有收集品 → 弃掉一个收集品）
+
+**禁止**：
+
+- 已装备在 Weapon/Armor/Element 栏的收藏品，不可被主动弃置（`UnequipAction` 必须拒绝并发 `unequip_blocked`）。
+- 收藏品**不可被他人夺取**：偷牌跳过收藏品栏位；击杀奖励同样排除收藏品（规则书 :108 / :230）。
+
+**换装语义（两个方向）**：
+
+```
+场景：A 的收藏品 m 已装在武器栏，手牌有非收藏品武器 n
+
+① 装 n： 武器栏 m → Collection 槽     （m 被收纳，不进弃牌堆）
+          手牌 n   → 武器栏            （n 正常装入）
+
+② 装回 m：武器栏 n → 弃牌堆           （必须先弃掉占位的 n）
+          Collection m → 武器栏        （m 回到生效位）
+```
+
+**检查点**：
+
+- `UnequipAction`：装备栏里的收藏品 → `unequip_blocked`，不得进弃牌堆。
+- `UseEquipment` 处理 `replaced_old_card`：收藏品 → `_add_to_slot(Collection)`，非收藏品 → 弃牌堆。
+- `EquipFromCollection`：目标栏原有的非收藏品 → 弃牌堆；原有的收藏品 → Collection 槽。
+- `LivingUpdate` 晕厥分支：允许把一件收藏品送进弃牌堆（这是规则允许的例外，**不是违规**）。
+- `DiscardCard`：手牌弃置的唯一入口，收藏品同样允许（右键点击手牌触发）。
+- `UseBaseplay` / `UseEffect` 打出收藏品后 → 进 Collection 槽（"收集"动作，不是弃置）。
+- `StealCard`：跳过含收藏品的栏位。
 
 ### R10. 装备技能挂接走 on_equip / on_unequip
 
@@ -386,7 +423,7 @@ source_codes/data/
 - **Weapon card** (花束/法杖): `on_equip` 写 `player.attack_range = attack_range`，`on_unequip` 重置为 1。
 - **法杖 (Staff)**: attack_range=2，附带可开关被动技能「魔力灌注」——点击技能槽切换，启用时所有攻击牌转为魔法攻击（type=Magic，num=magic_ability）。
 - **Armor card** (铠甲): `on_equip` adds +1 `physical_defence` and +1 `magic_defence`; `on_unequip` removes them. **NOT** the `armor` consumable buffer.
-- **Collection items**: Each player has `collection_item_ids: Array[String]`. Collection items NEVER go to discard pile. `is_collection_item(identity)` checks against this list.
+- **Collection items**: Each player has `collection_item_ids: Array[String]`. `is_collection_item(identity)` checks against this list. 它们的离场规则见 **R9**（手牌中可弃置；装备后被顶替进 Collection 槽；晕厥时弃置进弃牌堆）。
 - `CardManager.peek_draw_pile()` — 翻看抽牌堆顶牌（不抽出），供勘探技能使用。
 - `CardManager._create_card_data()` — 加载 JSON 时把 `skill_ids` 字段复制到 CardData。
 
@@ -438,7 +475,7 @@ Active actions:
 | `MoveAction` | HudBattle 移动模式 | 设 `map_position`，递减 `move_chance_in_turn`。**钩入地形系统**：通知 TerrainManager.on_player_moved |
 | `DrawCard` | HudBattle 点击抽牌堆 / TurnStart 链 | 抽牌到手牌。**抽到事件触发牌直接打出**（进弃牌堆 → 触发事件 → 事件后抽牌，递归级联） |
 | `EventTriggerPhase` | TurnStart 链（DrawCard 之后） | 循环检查手牌中的事件触发牌（来自初始手牌），依次打出。事件后抽牌调 `DrawCard._draw_one_card()` |
-| `DiscardCard` | — | 从手牌弃入弃牌堆 |
+| `DiscardCard` | HudBattle 右键点击手牌 | 从手牌弃入弃牌堆。**收藏品在手牌中同样可弃置（R9）** |
 | `RollDiceEntry` | 按需触发 | 掷骰入口，存储 `purpose` 和 `dice_result` |
 | `RollDiceExecute` | RollDiceEntry 链 | 实际掷骰，结果回传给 RollDiceEntry |
 | `UnequipAction` | 装备栏拖拽到 DiscardZone | 主动卸下非收藏品装备 → 弃牌堆（收藏品拒绝 → `unequip_blocked` 信号） |
@@ -448,7 +485,8 @@ Active actions:
 | `HealExecute` | 恢复链生效 | 修改 player.health（不超 max_health），记录实际恢复量传给下游 |
 | `CrystalMarkTrigger` | 水晶洗礼动态插入 | 恢复链最后一环：检查 meta `crystal_marks`，有则移除后造成等量真实伤害链 |
 | `CrystalShineExecute` | 水晶洗礼主动使用 | 弃置一张手牌 + 调用 skill.add_mark(target)。由 HudBattle 在点技能→选目标后触发 |
-| `AddMoveChance` | 魔术道具效果牌路径 | 增加 `move_chance_in_turn` 次数。HudBattle 动态加载脚本创建（R1/R2 合规：不直接在 HUD 改战斗状态） |
+| `AddMoveChance` | 按需触发 | 增加 `move_chance_in_turn` 次数。HudBattle 动态加载脚本创建（R1/R2 合规：不直接在 HUD 改战斗状态） |
+| `MagicPropEffect` | 魔术道具「效果牌」路径 | 弃置选中的效果牌 + 移动次数 +1。HudBattle 动态创建（R7 合规：效果逻辑在 action 层，不在 HUD） |
 
 `UseCard` 的四个子节点（UseEquipment / UseEffect / UseBaseplay / UseEventCard）由 `UseCard._ready()` 动态创建。其他动作节点若场景中不存在，由 `EquipmentBar._send_action()` / `EquipmentBar._get_or_create_action()` 动态加载脚本创建；`AddMoveChance` 由 HudBattle 在魔术道具效果牌路径动态加载创建。
 
@@ -811,7 +849,7 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 | `DurationType.CUSTOM` | 未实现 | 只有枚举与 JSON 解析，注册后永不过期 |
 | 大事件 20% 概率 | 未实现 | `EventDeck` 只有一个池，无大事件比例逻辑 |
 | `Player.is_selectable` | 声明未用 | 目标可选性未接到任何选择逻辑 |
-| 晕厥弃置收藏品 | 规则存疑 | 与 R9「收藏品永不进弃牌堆」冲突，需按规则书裁定 |
+| 回合末弃牌阶段 | 未实现 | `_on_end_turn_pressed()` 直接结束回合，没有「弃到 6 张」环节；手牌上限只在抽牌时拦截（手牌主动弃置已通过右键接通） |
 
 ---
 
@@ -846,7 +884,7 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 
 - **UI 结构写进 `hud_battle.tscn`，不程序化建节点。** 代码只做 `@onready` 引用 + 数据绑定。程序化建的 UI 后续无法在编辑器里调整（历史上装备栏/技能栏返工过两次）。
 - **坐标真源是 `cube_position`（Vector3i）**，`map_position`（Vector2i）只是渲染投影。两者同步由 HudBattle 负责（见 R6）。
-- **Collection 槽里的卡牌不触发 equip / unequip** —— 它只是存放位，不是装备位。收藏品永远不会进弃牌堆（见 R9）。
+- **Collection 槽里的卡牌不触发 equip / unequip** —— 它只是存放位，不是装备位。收藏品的可弃置性随位置变化，详见 **R9**。
 - **MapLayer 的滚轮缩放用 `_unhandled_input`**，不要用 `_input`，否则会吞掉 HUD 面板（角色信息、卡牌详情、战斗日志）的滚轮事件。
 - **实现技能前必须先读 `skill_database.json` 和目标角色的 `*_database.json`**，确认既有条目、字段和 script_path，不要凭记忆写。
 

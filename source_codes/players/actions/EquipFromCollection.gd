@@ -33,13 +33,18 @@ func take_action() -> void:
     if card_to_equip == null:
         return
 
-    # 类型安全：收藏品类型必须匹配目标槽位
-    var type_matches: bool = false
+    # 类型安全：规则 七「收集品可装备在武器、防具、收集品栏（元素栏不可）」。
+    # Weapon 只能进武器栏、Armor 只能进防具栏；Effect / Recovery 等其余类型的收藏品
+    # 两栏皆可（规则同时说明「效果牌、恢复牌作为收集品装备后不生效」）。
     match card_to_equip.type:
-        "Weapon": type_matches = (slot == Player.EquipmentSlotType.Weapon)
-        "Armor":  type_matches = (slot == Player.EquipmentSlotType.Armor)
-    if not type_matches:
-        return
+        "Weapon":
+            if slot != Player.EquipmentSlotType.Weapon:
+                return
+        "Armor":
+            if slot != Player.EquipmentSlotType.Armor:
+                return
+        _:
+            pass
 
     # 若目标栏已有装备，先卸下
     var target_arr: Array = player.get_equipment_in_slot(slot as Player.EquipmentSlotType)

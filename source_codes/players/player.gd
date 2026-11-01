@@ -6,6 +6,9 @@ enum LivingState {Alive,Fainted,Dead}
 ## 装备栏类型。收集品的装备逻辑稍后单独实现。
 enum EquipmentSlotType { Weapon, Armor, Element, Collection }
 
+## 收藏品栏的 UI 槽位数（CollectionSlot0-2）
+const COLLECTION_SLOT_CAPACITY: int = 3
+
 @export_group("基础属性")
 @export var player_name:String
 #生命值、最大生命值、初始生命值
@@ -195,7 +198,21 @@ func has_equipment_in_slot(slot: EquipmentSlotType) -> bool:
 
 ## 向指定栏位添加卡牌。仅做容器操作 + 发射信号。on_equip 由调用方（Action）负责。
 func _add_to_slot(slot: EquipmentSlotType, card: CardData) -> void:
+    if card == null:
+        return
     var arr: Array = get_equipment_in_slot(slot)
+    # 幂等：同一张牌不重复入栏（否则收藏品会被计两次，UI 也会重复渲染）
+    if arr.has(card):
+        return
+    # 收藏品栏只有 3 个 UI 槽位（CollectionSlot0-2）。超过部分会不可见、不可拖拽，
+    # 这里只告警不丢弃，保证卡牌不会凭空消失。
+    if slot == EquipmentSlotType.Collection:
+        var used := 0
+        for cd in arr:
+            if cd != null:
+                used += 1
+        if used >= COLLECTION_SLOT_CAPACITY:
+            push_warning("收藏品栏已满（%d），[%s] 超出显示范围" % [COLLECTION_SLOT_CAPACITY, card.nice_name])
     arr.append(card)
     equipment[slot] = arr
     equipment_changed.emit(slot)

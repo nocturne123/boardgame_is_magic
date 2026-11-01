@@ -79,6 +79,11 @@ func get_count() -> int:
     return _cards.size()
 
 
+## 返回当前手牌节点列表的副本（供 HUD 做命中测试等只读操作）。
+func get_cards() -> Array[CardSprite]:
+    return _cards.duplicate()
+
+
 func return_card(cs: CardSprite) -> void:
     if not is_instance_valid(cs):
         return

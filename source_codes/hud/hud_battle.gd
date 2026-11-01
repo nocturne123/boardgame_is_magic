@@ -1146,6 +1146,12 @@ func _unhandled_input(event: InputEvent) -> void:
             _cancel_paused_chain()
             get_viewport().set_input_as_handled()
             return
+        # 右键点击手牌 → 弃置该牌（收藏品在手牌中也允许弃置，见 R9）
+        var hand_card := _find_hand_card_at(mouse_global)
+        if hand_card != null:
+            _discard_hand_card(hand_card)
+            get_viewport().set_input_as_handled()
+            return
         if _move_mode:
             _exit_move_mode()
             _update_all_ui()
@@ -1189,6 +1195,32 @@ func _unhandled_input(event: InputEvent) -> void:
 ## 检测鼠标是否点中角色贴图。
 ## get_global_transform_with_canvas().affine_inverse() 正确处理 CanvasLayer offset/scale，
 ## 与 _mouse_to_tile 使用同一个变换路径。
+## 命中测试：鼠标当前位置是否有手牌。用于右键弃置。
+func _find_hand_card_at(mouse_global: Vector2) -> CardSprite:
+    for cs in hand_fan.get_cards():
+        if not is_instance_valid(cs):
+            continue
+        var local_mouse: Vector2 = cs.get_global_transform_with_canvas().affine_inverse() * mouse_global
+        if Rect2(Vector2.ZERO, cs.size).has_point(local_mouse):
+            return cs
+    return null
+
+## 通过 ActionTree 的 DiscardCard 动作弃置一张手牌（R1/R2：状态变更走 ActionTree）。
+## 收藏品在手牌中同样允许弃置（R9）。
+func _discard_hand_card(cs: CardSprite) -> void:
+    if cs == null or cs.card_data == null:
+        return
+    var controller := turn_mgr.get_current_player()
+    if controller == null:
+        return
+    var tree: Node = controller.get_node_or_null("ActionTree")
+    if tree == null or tree.get("discard_card") == null:
+        return
+    tree.discard_card.card = cs.card_data
+    tree.chain_of_actions(tree.discard_card)
+    _reset_selection()
+    _update_all_ui()
+
 func _find_player_at(mouse_global: Vector2) -> Player:
     for p in players:
         if p.living_state == Player.LivingState.Dead:
@@ -1342,23 +1374,26 @@ func _show_magic_prop_card_dialog(skill: SkillData) -> void:
             )
         else:
             btn.pressed.connect(func():
-                controller.remove_card_from_hand(cd)
-                if controller.card_manager:
-                    controller.card_manager.receive_into_discard(cd)
-                # R1/R2 合规：移动次数通过 ActionTree 修改，不直接在 HUD 改
+                # R7/R2 合规：弃牌 + 移动 +1 由 MagicPropEffect 动作节点完成，
+                # HUD 只负责创建节点并启动链（不再直接改手牌/弃牌堆）
                 var tree: Node = controller.get_node_or_null("ActionTree")
-                if tree:
-                    var add_move := tree.get_node_or_null("AddMoveChance")
-                    if add_move == null:
-                        var scr := load("res://source_codes/players/actions/AddMoveChance.gd")
-                        if scr:
-                            add_move = scr.new()
-                            add_move.name = "AddMoveChance"
-                            tree.add_child(add_move)
-                    if add_move:
-                        tree.chain_of_actions(add_move as BaseAction)
                 overlay.queue_free()
-                _log("[color=#60f060]弃置 [%s]，增加 1 次移动机会[/color]" % cd.nice_name)
+                if tree == null:
+                    _update_all_ui()
+                    return
+                var effect_act = tree.get_node_or_null("MagicPropEffect")
+                if effect_act == null:
+                    var scr := load("res://source_codes/skills/actions/magic_prop_effect.gd")
+                    if scr:
+                        effect_act = scr.new()
+                        effect_act.name = "MagicPropEffect"
+                        tree.add_child(effect_act)
+                if effect_act:
+                    effect_act.card = cd
+                    effect_act.extra_move = 1
+                    tree.chain_of_actions(effect_act as BaseAction)
+                else:
+                    _log("[color=#f06060]无法创建 MagicPropEffect 节点[/color]")
                 _update_all_ui()
             )
         hbox.add_child(btn)
