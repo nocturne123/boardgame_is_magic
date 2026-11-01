@@ -10,14 +10,14 @@ A My Little Pony fan-made turn-based tactical card battler on a hexagonal grid, 
 
 ## Running the Game
 
-Godot binary is at `../Godot_v4.7.1-stable_linux.x86_64` (relative to project root). All commands run from the project root.
+Godot binary is at `../Godot_v4.7.2-stable_linux.x86_64` (relative to project root). All commands run from the project root.
 
 ```bash
 # Interactive HUD battle — this is the active development scene
-../Godot_v4.7.1-stable_linux.x86_64 --path .
+../Godot_v4.7.2-stable_linux.x86_64 --path .
 
 # Headless unit test suite
-../Godot_v4.7.1-stable_linux.x86_64 --headless --path . test/test_runner.tscn
+../Godot_v4.7.2-stable_linux.x86_64 --headless --path . test/test_runner.tscn
 ```
 
 The headless test output can be redirected: `... --headless ... test/test_runner.tscn > test/test.txt`
@@ -766,7 +766,7 @@ Full rulebook v4.1 in Chinese. Covers: win conditions, turn phases, terrain effe
 
 ### Tests (`test/`)
 
-255 tests across 36 test functions. Run: `../Godot_v4.7.1-stable_linux.x86_64 --headless --path . test/test_runner.tscn`
+255 tests across 36 test functions. Run: `../Godot_v4.7.2-stable_linux.x86_64 --headless --path . test/test_runner.tscn`
 
 Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_test_*()` methods, `_assert(condition, name, detail)`.
 
@@ -827,3 +827,16 @@ Pattern: preload class_name scripts as `const` (bypasses headless class DB), `_t
 4. **`class_name` not available in headless** — Preload scripts as `const`.
 5. Use `get_global_transform_with_canvas().affine_inverse() * global_pos` to convert global mouse → local space.
 6. **EquipmentSlot export 属性**: Godot 不序列化等于默认值的属性。必须在 tscn 中显式设置非默认值。
+7. **`affine_inverse()` 返回 Variant** — `var x := node.get_global_transform_with_canvas().affine_inverse() * pos` 会让 `:=` 推断失败（严格模式下警告即错误）。必须显式标注类型：`var x: Vector2 = ...`。同理 `var n := node.get("prop")` 也须显式类型。
+8. **`NOTIFICATION_DRAG_END` 是广播** — 所有 Control 都会收到，包括没参与本次拖拽的。必须用 `_is_dragging` 之类的标志先确认自己处于拖拽中，否则会误触发卸下/移动。
+
+---
+
+## 开发约定（项目级偏好）
+
+- **UI 结构写进 `hud_battle.tscn`，不程序化建节点。** 代码只做 `@onready` 引用 + 数据绑定。程序化建的 UI 后续无法在编辑器里调整（历史上装备栏/技能栏返工过两次）。
+- **坐标真源是 `cube_position`（Vector3i）**，`map_position`（Vector2i）只是渲染投影。两者同步由 HudBattle 负责（见 R6）。
+- **Collection 槽里的卡牌不触发 equip / unequip** —— 它只是存放位，不是装备位。收藏品永远不会进弃牌堆（见 R9）。
+- **MapLayer 的滚轮缩放用 `_unhandled_input`**，不要用 `_input`，否则会吞掉 HUD 面板（角色信息、卡牌详情、战斗日志）的滚轮事件。
+- **实现技能前必须先读 `skill_database.json` 和目标角色的 `*_database.json`**，确认既有条目、字段和 script_path，不要凭记忆写。
+

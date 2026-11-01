@@ -1,7 +1,7 @@
 extends Node
 
 ## 项目综合测试套件
-## 运行方式: ../Godot_v4.6.2-stable_linux.x86_64 --headless --path . test/test_runner.tscn
+## 运行方式: ../Godot_v4.7.2-stable_linux.x86_64 --headless --path . test/test_runner.tscn
 ## 所有输出通过 print() 写入 stdout，可重定向到 test.txt
 
 # ---- 预加载所有 class_name 脚本以绕过 headless 全局类缓存缺失 ----
