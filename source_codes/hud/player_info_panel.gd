@@ -85,7 +85,8 @@ func _get_effective_attack_range(p: Player) -> int:
     var tm = p.get_meta("terrain_manager")
     if tm:
         r += tm.get_attack_range_mod(p)
-    return max(r, 1)
+    # 规则 十三：无武器时攻击范围为 0；森林 -1 后最小为 0（游戏规则.md:125 / :238）
+    return max(r, 0)
 
 
 func show_player(p: Player) -> void:

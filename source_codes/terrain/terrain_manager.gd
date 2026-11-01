@@ -82,10 +82,8 @@ func _apply_enter(player: Player, effect) -> void:
     effect.on_enter(player)
 
 func _apply_exit(player: Player, effect) -> void:
-    # 离开时即使免疫也要清理（防止之前非免疫时进入的效果残留）
-    if _is_immune(player):
-        # 免疫者不会有地形 meta，不需要清理
-        return
+    # 即使当前免疫也必须清理：玩家可能"先进入地形拿到 meta，之后才开启免疫"，
+    # 提前 return 会把 meta 永久留在身上（森林 -1 攻击距离会一直生效）。
     effect.on_exit(player)
 
 func _apply_turn_start(player: Player, effect) -> void:

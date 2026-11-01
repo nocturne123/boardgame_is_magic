@@ -187,7 +187,11 @@ func get_equipment_in_slot(slot: EquipmentSlotType) -> Array:
     return equipment[slot] as Array
 
 func has_equipment_in_slot(slot: EquipmentSlotType) -> bool:
-    return get_equipment_in_slot(slot).size() > 0
+    # 收藏品槽可能含 null 占位（EquipmentBar 槽位互换时插入），不能只看 size()
+    for cd in get_equipment_in_slot(slot):
+        if cd != null:
+            return true
+    return false
 
 ## 向指定栏位添加卡牌。仅做容器操作 + 发射信号。on_equip 由调用方（Action）负责。
 func _add_to_slot(slot: EquipmentSlotType, card: CardData) -> void:

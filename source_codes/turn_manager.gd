@@ -46,10 +46,9 @@ func _advance_to_next_alive() -> void:
             break
 
 func _start_turn_for(p: Player) -> void:
-    p.health_last_turn = p.health
-    var tree := p.get_node_or_null("ActionTree")
-    if tree != null and tree.get("turn_start") != null:
-        tree.chain_of_actions(tree.turn_start)
+    # R3：TurnManager 只做调度，不写 Player 任何字段、不直接触发 ActionTree 动作。
+    # TurnStart → DrawCard → EventTriggerPhase 链由 HudBattle 在 turn_started 回调里启动
+    # （见 CLAUDE.md「信号流」章节）。
     turn_started.emit(p)
 
 ## 从轮转列表中移除玩家（应在 LivingUpdate 检测死亡后调用）。

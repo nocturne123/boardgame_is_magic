@@ -7,8 +7,10 @@ var card: CardData = null
 var target: Player = null
 var _old_card_nice: String = ""
 var _new_info: String = ""
+var _failed: bool = false
 
 func take_action() -> void:
+    _failed = false
     if card == null:
         return
 
@@ -30,7 +32,11 @@ func take_action() -> void:
             player.card_manager.receive_into_discard(card)
     else:
         # 正常装备：execute() 内部处理装备逻辑 + 设置 replaced_old_card
-        card.execute(player, target, player.card_manager)
+        var ok: bool = card.execute(player, target, player.card_manager)
+        if not ok:
+            # 装备失败：卡牌留在手里，不移出、不进弃牌堆（此前会静默丢失）
+            _failed = true
+            return
         player.remove_card_from_hand(card)
 
         # 装备成功，记录日志信息
@@ -54,11 +60,14 @@ func reset_property() -> void:
     target = null
     _old_card_nice = ""
     _new_info = ""
+    _failed = false
 
 
 func _get_action_info() -> String:
     if card == null:
         return ""
+    if _failed:
+        return "[color=#f06060]装备失败：[%s] 保留在手牌中[/color]" % card.nice_name
     if _old_card_nice.is_empty():
         return "%s 装备了 [%s]" % [player.player_name, _new_info]
     return "%s 装备了 [%s]，替换了 [%s]" % [player.player_name, _new_info, _old_card_nice]

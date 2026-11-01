@@ -18,6 +18,8 @@ func inform_next_action() -> void:
         return
     var action := skill.get_action_node(tree)
     if action == null:
+        # 没有对应动作节点：显式断链，避免沿用上一次残留的 next_action
+        next_action = null
         return
 
     action.player = player

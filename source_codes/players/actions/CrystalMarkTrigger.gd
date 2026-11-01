@@ -24,6 +24,7 @@ func take_action():
     var dmg: Damage = Damage.new()
     dmg.type = Damage.DamageType.Real
     dmg.num = heal_amount
+    dmg.ignore_armor = true   # 真实伤害：护甲不吸收
     var tree = player.get_node_or_null("ActionTree")
     if tree and tree.get("receive_damage") != null:
         tree.receive_damage.damage = dmg

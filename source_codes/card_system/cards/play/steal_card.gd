@@ -15,6 +15,9 @@ func resolve(_source: Player, _target: Player) -> Variant:
     }
 
 func execute(_source: Player, target: Player, _card_manager: CardManager) -> bool:
+    # 偷牌免疫（Player.immune_from_steal）：该字段此前声明后无任何读取点，形同虚设
+    if target.immune_from_steal:
+        return false
     if target.get_hand_size() > 0:
         # 通过容器方法偷手牌（R4：容器操作走 Player 方法，自动发信号）
         var stolen: CardData = target.hand[target.hand.size() - 1]

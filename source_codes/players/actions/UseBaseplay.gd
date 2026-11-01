@@ -7,16 +7,19 @@ class_name UseBaseplay extends BaseAction
 var card: CardData = null
 var target: Player = null
 var strength_bonus: int = 0
+## 卡牌未能生效（如偷牌目标两手空空）→ 本动作取消使用，卡牌留在手牌中
+var _cancelled: bool = false
 
 func take_action() -> void:
     if card == null:
         return
 
-    var handled: bool = card.execute(player, target, player.card_manager)
-    if not handled:
+    var did_something: bool = card.execute(player, target, player.card_manager)
+    if not did_something:
         # fallback：攻击牌走 resolve → Damage，通过目标 ActionTree 的伤害链
         var result: Variant = card.resolve(player, target)
         if result is Damage:
+            did_something = true
             # 法杖魔力灌注：攻击牌转化为魔法攻击（魔术道具虚拟牌除外——保留玩家选择的攻击类型）
             if player.has_meta("equip_staff_magic") and player.get_meta("equip_staff_magic"):
                 if card is BaseAttack and not card.identity.begins_with("__"):
@@ -29,13 +32,21 @@ func take_action() -> void:
             var event_mgr = player.get_meta("event_manager")
             if event_mgr:
                 (result as Damage).num += event_mgr.get_outgoing_damage_modifiers(player, (result as Damage).type)
-            var target_tree := target.get_node_or_null("ActionTree")
-            if target_tree != null and target_tree.get("receive_damage") != null:
-                target_tree.receive_damage.damage = result as Damage
-                # R14 保护：目标可能是自己（同树嵌套），保存/恢复外层链状态
-                var saved: BaseAction = target_tree._current_chain_action
-                target_tree.chain_of_actions(target_tree.receive_damage)
-                target_tree._current_chain_action = saved
+            if target == null:
+                push_error("UseBaseplay: 伤害牌没有目标 [%s]" % card.nice_name)
+            else:
+                var target_tree := target.get_node_or_null("ActionTree")
+                if target_tree != null and target_tree.get("receive_damage") != null:
+                    target_tree.receive_damage.damage = result as Damage
+                    # R14 保护：目标可能是自己（同树嵌套），保存/恢复外层链状态
+                    var saved: BaseAction = target_tree._current_chain_action
+                    target_tree.chain_of_actions(target_tree.receive_damage)
+                    target_tree._current_chain_action = saved
+
+    if not did_something:
+        # 取消使用（如偷牌目标无手牌也无装备）：卡牌保留在手牌中，不消耗
+        _cancelled = true
+        return
 
     player.remove_card_from_hand(card)
 
@@ -61,10 +72,13 @@ func reset_property() -> void:
     card = null
     target = null
     strength_bonus = 0
+    _cancelled = false
 
 
 func _get_action_info() -> String:
     if card == null:
         return ""
+    if _cancelled:
+        return "[color=#f0c060]%s 使用 [%s] 未生效，卡牌保留在手牌中[/color]" % [player.player_name, card.nice_name]
     var target_name := target.player_name if target else "?"
     return "%s 对 %s 使用了 [%s]" % [player.player_name, target_name, card.nice_name]

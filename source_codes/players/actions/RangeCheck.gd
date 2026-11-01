@@ -11,6 +11,10 @@ var _passed: bool = true
 
 func take_action() -> void:
     if source == null or target == null:
+        # 参数缺失：阻断链。不能静默 return —— next_action 是持久字段，
+        # 沿用上一次残留的值会让本次距离校验被绕过。
+        _passed = false
+        next_action = null
         return
     _dist = _cube_distance(source.cube_position, target.cube_position)
     if _dist > max_range:

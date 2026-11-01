@@ -25,6 +25,10 @@ func inform_next_action() -> void:
     if _restore_end:
         _restore_end.next_action = _restore_next
 
+    # 必须显式清空 next_action：它是持久字段，若上一次判定成功留了
+    # next_action = heal_entry，本次失败会直接沿用它 → 白回 1 点体力。
+    next_action = null
+
     if not _success:
         return
     var tree: ActionTree = get_parent() as ActionTree
