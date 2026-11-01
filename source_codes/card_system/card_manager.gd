@@ -98,7 +98,7 @@ func take_from_draw_pile(count: int = 1) -> Array[CardData]:
             _shuffle_discard_into_draw()
         if _draw_pile.is_empty():
             return cards
-        var card: CardData = _draw_pile.pop_back()
+        var card: CardData = _draw_pile.pop_front()
         cards.push_back(card)
         card_drawn.emit(card)
     draw_pile_updated.emit()
@@ -152,10 +152,11 @@ func get_draw_pile_size() -> int:
     return _draw_pile.size()
 
 ## 翻看抽牌堆顶牌（不抽出）。供勘探等技能使用。
+## 与 take_from_draw_pile 保持一致：数组头部才是"顶"（R11：JSON 顺序即抽牌顺序）。
 func peek_draw_pile() -> CardData:
     if _draw_pile.is_empty():
         return null
-    return _draw_pile[_draw_pile.size() - 1]
+    return _draw_pile[0]
 
 func get_discard_pile_size() -> int:
     return _discard_pile.size()

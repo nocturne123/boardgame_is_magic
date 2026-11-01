@@ -31,7 +31,7 @@
     "texture_path": "res://assets/card_library/playable/actions/触发事件.png",
     "backface_texture_path": "res://assets/card_library/playable/摸牌堆.png",
     "resource_script_path": "res://source_codes/event_system/event_trigger_card.gd",
-    "type": "EventTrigger",
+    "type": "Event",
     "identity": "事件触发牌",
     "description": "抽到时立即触发一个随机事件，事件结算后摸一张牌。"
   },
